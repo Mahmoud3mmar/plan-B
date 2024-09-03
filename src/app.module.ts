@@ -40,14 +40,15 @@ import { MongooseModule } from '@nestjs/mongoose';
   // }),
     // useNewUrlParser: true,
     // useUnifiedTopology: true,
+    ConfigModule.forRoot(), // Ensure this is here to load .env variables
     MongooseModule.forRootAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
-      useFactory: async (configService: ConfigService) => ({  
-        uri: configService.get<string>('MONGODB_URI'),
-        // useNewUrlParser: true,
-        // useUnifiedTopology: true,
-      }),
+      useFactory: async (configService: ConfigService) => {
+        const uri = configService.get<string>('MONGODB_URI');
+        console.log('MongoDB URI:', uri); // Log to verify URI
+        return { uri };
+      },
     }),
 ],
   controllers: [AppController],
