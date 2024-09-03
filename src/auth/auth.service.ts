@@ -13,9 +13,9 @@ import { Model } from 'mongoose';  // Import ObjectId here
 import * as bcrypt from 'bcrypt';
 import * as crypto from 'crypto';
 
-import { User } from 'src/user/entities/user.entity';
+import { User } from '../user/entities/user.entity';
 import { JwtService } from '@nestjs/jwt';
-import { MailService } from 'src/Email.Service';
+import { MailService } from '../Email.Service';
 import { SignUpAuthDto } from './dto/signup.auth.dto';
 import { LoginAuthDto } from './dto/login.auth.dto';
 @Injectable()
