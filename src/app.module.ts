@@ -15,7 +15,7 @@ import { ReviewEntity } from './review/entities/review.entity';
 import { InstructorEntity } from './instructor/entities/instructor.entity';
 import { SummertrainingEntity } from './summertraining/entities/summertraining.entity';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { ConfigModule } from '@nestjs/config';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import { MongooseModule } from '@nestjs/mongoose';
 
 @Module({
@@ -29,7 +29,7 @@ import { MongooseModule } from '@nestjs/mongoose';
   //   useUnifiedTopology: true,
   //   useNewUrlParser: true,
   //   synchronize: true, // Make sure you use this only in development
-  //   entities: [
+  //   entities: [ 
   //     UserEntity,
   //     CourseEntity,
   //     FaqEntity,
@@ -38,11 +38,17 @@ import { MongooseModule } from '@nestjs/mongoose';
   //     SummertrainingEntity,
   //   ],
   // }),
-  MongooseModule.forRoot('mongodb+srv://mahmoudammar560:ammar@2024@cluster0.6niiy.mongodb.net/plan-b?retryWrites=true&w=majority', {
     // useNewUrlParser: true,
     // useUnifiedTopology: true,
-  }),
-  
+    MongooseModule.forRootAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: async (configService: ConfigService) => ({  
+        uri: configService.get<string>('MONGODB_URI'),
+        // useNewUrlParser: true,
+        // useUnifiedTopology: true,
+      }),
+    }),
 ],
   controllers: [AppController],
   providers: [AppService],
