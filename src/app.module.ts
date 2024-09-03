@@ -17,6 +17,7 @@ import { SummertrainingEntity } from './summertraining/entities/summertraining.e
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { MongooseModule } from '@nestjs/mongoose';
+import mongoose from 'mongoose';
 
 @Module({
   imports: [AuthModule, UserModule, CourseModule, FaqsModule, InstructorModule, ReviewModule, SummertrainingModule,
@@ -50,6 +51,8 @@ import { MongooseModule } from '@nestjs/mongoose';
     //     return { uri };
     //   },
     // }),
+    
+    MongooseModule.forRoot(process.env.MONGODB_URI)
 ],
   controllers: [AppController],
   providers: [AppService],
