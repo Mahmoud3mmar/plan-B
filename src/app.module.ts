@@ -22,31 +22,21 @@ import { ConfigModule } from '@nestjs/config';
     ConfigModule.forRoot({
     isGlobal: true,
   }),
-  // TypeOrmModule.forRoot({
-  //   type: 'mongodb',
-  //   url: 'mongodb+srv://mahmoudammar560:ammar@2024@cluster0.6niiy.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0',
-  //   port: 27017,
-
-  //   database: 'plan-b',
-  //   synchronize: true,
-  //   username: 'mahmoudammar560',
-  //   password: 'ammar@2024',
-  //   entities: [
-  //     UserEntity,
-  //     CourseEntity,
-  //     FaqEntity,
-  //     ReviewEntity,
-  //     InstructorEntity,
-  //     SummertrainingEntity,
-  //   ],
-
-    // useUnifiedTopology: true,
-    // useNewUrlParser: true,
-    // authSource: "admin",
-    // ssl: true,
-
-   
-  // }),
+  TypeOrmModule.forRoot({
+    type: 'mongodb',
+    url: 'mongodb+srv://mahmoudammar560:ammar@2024@cluster0.6niiy.mongodb.net/plan-b?retryWrites=true&w=majority',
+    useUnifiedTopology: true,
+    useNewUrlParser: true,
+    synchronize: true, // Make sure you use this only in development
+    entities: [
+      UserEntity,
+      CourseEntity,
+      FaqEntity,
+      ReviewEntity,
+      InstructorEntity,
+      SummertrainingEntity,
+    ],
+  }),
 ],
   controllers: [AppController],
   providers: [AppService],
