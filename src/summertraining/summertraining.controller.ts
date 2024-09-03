@@ -2,7 +2,9 @@ import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/commo
 import { SummertrainingService } from './summertraining.service';
 import { CreateSummertrainingDto } from './dto/create-summertraining.dto';
 import { UpdateSummertrainingDto } from './dto/update-summertraining.dto';
+import { ApiTags } from '@nestjs/swagger';
 
+@ApiTags('summertraining')
 @Controller('summertraining')
 export class SummertrainingController {
   constructor(private readonly summertrainingService: SummertrainingService) {}
