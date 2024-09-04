@@ -12,13 +12,7 @@ export class CreateCourseDto {
   @IsString()
   overview: string;
 
-  @IsNotEmpty()
-  @IsNumber()
-  duration: number; // Duration in hours
-
-  @IsNotEmpty()
-  @IsNumber()
-  studentsEnrolled: number;
+  
 
   @IsEnum(Level)
   role:Level;
