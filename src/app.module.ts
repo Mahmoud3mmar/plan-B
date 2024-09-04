@@ -11,13 +11,17 @@ import { SummertrainingModule } from './summertraining/summertraining.module';
 
 import { ConfigModule } from '@nestjs/config';
 import { MongooseModule } from '@nestjs/mongoose';
+import { CourseCurriculmModule } from './course-curriculm/course-curriculm.module';
+import { StudentModule } from './student/student.module';
 
 @Module({
   imports: [AuthModule, UserModule, CourseModule, FaqsModule, InstructorModule, ReviewModule, SummertrainingModule,
     ConfigModule.forRoot({
     isGlobal: true,
   }),
-  MongooseModule.forRoot(process.env.MONGODB_URI)
+  MongooseModule.forRoot(process.env.MONGODB_URI),
+  CourseCurriculmModule,
+  StudentModule
 ],
   controllers: [AppController],
   providers: [AppService],
