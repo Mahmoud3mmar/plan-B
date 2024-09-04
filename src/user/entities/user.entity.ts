@@ -8,7 +8,7 @@ import mongoose from 'mongoose';
 
 
 
-@Schema({ timestamps: true })
+@Schema({ timestamps: true ,discriminatorKey: 'role'})
 export class User  {
   @Prop({ auto: true})
   _id!: mongoose.Types.ObjectId;
