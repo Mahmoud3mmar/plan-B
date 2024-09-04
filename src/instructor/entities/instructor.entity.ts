@@ -10,11 +10,9 @@ export class Instructor extends User {
   @Prop({ required: true })
   bio: string;
 
-  @Prop({ required: true })
-  qualifications: string;
+  @Prop({ type: [{ type: String, required: true }, { type: String, required: true }] })
+  socialMediaLinks: { type: string; url: string }[]; // Array of social media links with type and URL
 
-  @Prop({ required: true })
-  experience: string; // e.g., '5 years of experience in teaching Python'
 
   @Prop({ required: true, default: 0 })
   numberOfStudentsEnrolled: number; // Number of students enrolled with this instructor
