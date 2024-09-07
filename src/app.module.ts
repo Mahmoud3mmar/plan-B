@@ -13,6 +13,7 @@ import { ConfigModule } from '@nestjs/config';
 import { MongooseModule } from '@nestjs/mongoose';
 import { CourseCurriculmModule } from './course-curriculm/course-curriculm.module';
 import { StudentModule } from './student/student.module';
+import { TokenBlacklistModule } from './token-blacklist/token-blacklist.module';
 
 @Module({
   imports: [AuthModule, UserModule, CourseModule, FaqsModule, InstructorModule, ReviewModule, SummertrainingModule,
@@ -21,7 +22,8 @@ import { StudentModule } from './student/student.module';
   }),
   MongooseModule.forRoot(process.env.MONGODB_URI),
   CourseCurriculmModule,
-  StudentModule
+  StudentModule,
+  TokenBlacklistModule
 ],
   controllers: [AppController],
   providers: [AppService],
