@@ -10,8 +10,9 @@ import mongoose from 'mongoose';
 
 @Schema({ timestamps: true ,discriminatorKey: 'role'})
 export class User  {
-  @Prop({ auto: true})
-  _id!: mongoose.Types.ObjectId;
+  @Prop({ type: mongoose.Schema.Types.ObjectId, auto: true })
+  _id?: mongoose.Types.ObjectId;
+  
   @Prop({ required: true })
   firstName: string;  // New field
 
@@ -27,8 +28,7 @@ export class User  {
   @Prop({ required: true })
   password: string;
 
-  @Prop({ required: true })
-  confirmPassword: string;
+
 
 
   @Prop({ nullable: true })
@@ -40,7 +40,7 @@ export class User  {
   @Prop({ nullable: true })
   refreshToken?: string;
 
-  @Prop({ type: String, enum: Role, default: Role.ADMIN })
+  @Prop({ type: String, enum: Role, default: Role.STUDENT })
   role: Role;
 
   @Prop({ nullable: true })
@@ -48,6 +48,14 @@ export class User  {
 
   @Prop({ nullable: true })
   resetPasswordExpires?: Date;
+
+  @Prop({ nullable: true })
+
+
+
+  @Prop({default:false})
+  isVerified: boolean;
+
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);
