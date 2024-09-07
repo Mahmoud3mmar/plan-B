@@ -9,7 +9,7 @@ import { SignUpAuthDto } from './dto/signup.auth.dto';
 import { VerifyOtpDto } from './dto/verify.otp.dto';
 import { AccessTokenGuard } from './guards/accessToken.guard';
 
-@ApiTags('auth')
+@ApiTags('Authentication') // Swagger tag to group endpoints
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
@@ -86,9 +86,12 @@ export class AuthController {
 
   //   return { message: 'Logout successful' };
   // }
-
   @Post('logout')
   @UseGuards(AccessTokenGuard)
+  @ApiOperation({ summary: 'Logout a user' }) // Description for this API operation
+  @ApiResponse({ status: 200, description: 'Logout successful' }) // Response when successful
+  @ApiResponse({ status: 401, description: 'Unauthorized or missing refresh token' }) // Unauthorized response
+  @ApiResponse({ status: 500, description: 'Failed to log out user' }) // Error response
   async logout(@Request() req): Promise<{ message: string }> {
     const userId = req.user.userId; // Assuming `sub` contains the user ID
     const refreshToken = req.headers['refreshtoken'] as string; // Assuming you send the refresh token in the headers
