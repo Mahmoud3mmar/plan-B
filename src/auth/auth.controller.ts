@@ -81,8 +81,8 @@ export class AuthController {
   @ApiOperation({ summary: 'Verify OTP for email verification' })
   @ApiQuery({
     name: 'token',
-    description: 'OTP token received via email',
-    example: '123456',
+    description: 'token received after login',
+    
   })
   @ApiResponse({
     status: 200,
@@ -255,8 +255,8 @@ export class AuthController {
   })
   @ApiQuery({
     name: 'token',
-    description: 'Reset token received via email',
-    example: 'abcd1234efgh5678',
+    description: 'Reset token received via email within url',
+    example: 'https://plan-iota.vercel.app/reset/password?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2NmRjNTRiOTVlZWNiYjg3NDFjOWUxODIiLCJlbWFpbCI6Im1haG1vdWQuYW1tYXI1NjBAZ21haWwuY29tIiwib3RwIjoiODcwNTUxIiwiaWF0IjoxNzI1NzI0OTMyLCJleHAiOjE3MjU3MjU4MzJ9.bCOMmMIh0pr-N3NsTSS-gdaBDotuQuSBQpnIQ_LQOv4',
   })
   @ApiBody({
     schema: {
@@ -325,7 +325,7 @@ export class AuthController {
   @ApiQuery({
     name: 'refreshToken',
     description: 'Refresh token used to generate new access and refresh tokens',
-    example: 'abcd1234efgh5678',
+    example: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2NmRjNTRiOTVlZWNiYjg3NDFjOWUxODIiLCJlbWFpbCI6Im1haG1vdWQuYW1tYXI1NjBAZ21haWwuY29tIiwicm9sZSI6IkFETUlOIiwiaWF0IjoxNzI1ODA4ODI0LCJleHAiOjE3MjY0MTM2MjR9.odtn1mnQc13IsB-LU6LXY8H2hkv5Op21TnoR7bsUoCI',
   })
   @ApiResponse({
     status: 200,
