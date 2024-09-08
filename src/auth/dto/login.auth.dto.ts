@@ -6,11 +6,16 @@ import {
 
 export class LoginAuthDto {
     
-  @ApiProperty({ description: 'The Login email of the user' })
-  @IsEmail()
-  readonly email: string;
+  @ApiProperty({
+    description: 'The email of the user for login',
+    example: 'john.doe@example.com',
+  })  @IsEmail()
+   email: string;
 
-  @ApiProperty({ description: 'The Login password of the user' })
+  @ApiProperty({
+    description: 'The password of the user for login',
+    example: 'StrongPassword123!',
+  })
   @IsString()
-  readonly password: string;
+   password: string;
 }

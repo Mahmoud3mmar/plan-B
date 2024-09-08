@@ -3,45 +3,26 @@ import { ApiProperty } from '@nestjs/swagger';
 import { Role } from '../../user/common utils/Role.enum';
 
 export class SignUpAuthDto {
+  @ApiProperty({ example: 'john.doe@example.com', description: 'Email address of the user' })
+  email: string;
 
-  @ApiProperty({ description: 'The email of the user' })
-  @IsEmail()
-  readonly email: string;
+  @ApiProperty({ example: 'John', description: 'First name of the user' })
+  firstName: string;
 
-  @ApiProperty({ description: 'The first name of the user' })
-  @IsString()
-  @MinLength(1)
-  readonly firstName: string;
+  @ApiProperty({ example: 'Doe', description: 'Last name of the user' })
+  lastName: string;
 
-  @ApiProperty({ description: 'The last name of the user' })
-  @IsString()
-  @MinLength(1)
-  readonly lastName: string;
+  @ApiProperty({ example: '+1234567890', description: 'Phone number of the user' })
+  phoneNumber: string;
 
-  @ApiProperty({ description: 'The phone number of the user' })
-  @IsString()
-  @MinLength(10)
-  @MaxLength(15)
-  readonly phoneNumber: string;
+  @ApiProperty({ example: 'SecurePass123!', description: 'Password chosen by the user' })
+  password: string;
 
-  @ApiProperty({ description: 'The password of the user' })
-  @IsString()
-  @MinLength(4)
-  
-  readonly password: string;
+  @ApiProperty({ example: 'SecurePass123!', description: 'Password confirmation' })
+  confirmPassword: string;
 
-
-  @ApiProperty({ description: 'Confirm password for the user' })
-  @IsString()
-  @MinLength(4)
-  @ValidateIf(o => o.password)
-  @IsNotEmpty({ message: 'Confirm password should not be empty' })
-  readonly confirmPassword: string;
-
-  @ApiProperty({ description: 'The role of the user' })
-  @IsEnum(Role, { message: 'Role must be either ADMIN, USER, etc.' })
-  readonly role: Role;
-
+  @ApiProperty({ example: 'user', description: 'Role of the user (e.g., user, admin)' })
+  role: string;
 
 
   
