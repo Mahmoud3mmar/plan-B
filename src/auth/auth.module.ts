@@ -9,10 +9,14 @@ import { AccessTokenStrategy } from './accessToken.strategy';
 import { RefreshTokenStrategy } from './refreshToken.strategy';
 import { MailService } from '../Email.Service';
 import { TokenBlacklistModule } from '../token-blacklist/token-blacklist.module';
+import { Instructor, InstructorSchema } from 'src/instructor/entities/instructor.entity';
+import { Student, StudentSchema } from 'src/student/entities/student.entity';
 
 @Module({
   imports: [
-    MongooseModule.forFeature([{ name: User.name, schema: UserSchema }]),
+    MongooseModule.forFeature([{ name: User.name, schema: UserSchema },
+      { name: Instructor.name, schema: InstructorSchema },
+      { name: Student.name, schema: StudentSchema }]),
     PassportModule.register({ defaultStrategy: 'jwt' }),
 
     JwtModule.register({}),

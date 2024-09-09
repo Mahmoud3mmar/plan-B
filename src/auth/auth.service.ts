@@ -21,10 +21,14 @@ import { SignUpAuthDto } from './dto/signup.auth.dto';
 import { LoginAuthDto } from './dto/login.auth.dto';
 import { VerifyOtpDto } from './dto/verify.otp.dto';
 import { TokenBlacklistService } from '../token-blacklist/token-blacklist.service';
+import { Instructor } from 'src/instructor/entities/instructor.entity';
+import { Student } from 'src/student/entities/student.entity';
 @Injectable()
 export class AuthService {
   constructor(
     @InjectModel(User.name) private readonly userModel: Model<User>,
+    @InjectModel(Instructor.name) private readonly InstructorModel: Model<Instructor>,
+    @InjectModel(Student.name) private readonly StudentModel: Model<Student>,
 
     private readonly jwtService: JwtService,
     private readonly mailService: MailService,
@@ -75,7 +79,26 @@ export class AuthService {
 
       // Save user to database
       await user.save();
-
+      // // Create role-specific entity
+      // if (role === 'INSTRUCTOR') {
+      //   const instructor = new this.InstructorModel({
+      //     ...savedUser.toObject(),
+      //     bio: ' ', // Default or empty
+      //     profileImage: '', // Default or empty
+      //     socialMediaLinks: [], // Default or empty
+      //     numberOfStudentsEnrolled: 0, // Default value
+      //     numberOfCoursesProvided: 0, // Default value
+      //     courses: [], // Default or empty
+      //     students: [], // Default or empty
+      //   });
+      //   await instructor.save();
+      // } else if (role === 'STUDENT') {
+      //   const student = new this.StudentModel({
+      //     ...savedUser.toObject(),
+      //     coursesEnrolled: [], // Default or empty
+      //   });
+      //   await student.save();
+      // }
       // Generate OTP
       const otp = crypto.randomInt(100000, 999999).toString();
 
@@ -241,10 +264,13 @@ export class AuthService {
     try {
       await this.mailService.transporter.sendMail(mailOptions);
       return {
-        message: 'If your email is valid, you will receive a password reset link.',
+        message:
+          'If your email is valid, you will receive a password reset link.',
       };
     } catch (error) {
-      throw new InternalServerErrorException('Failed to send Password Reset Request email');
+      throw new InternalServerErrorException(
+        'Failed to send Password Reset Request email',
+      );
     }
   }
 
@@ -283,8 +309,28 @@ export class AuthService {
       }
 
       user.isVerified = true;
-      await user.save();
-
+      const verifiedUser =await user.save();
+      // Create role-specific entity
+      if (user.role === 'INSTRUCTOR') {
+        const instructor = new this.InstructorModel({
+          ...verifiedUser.toObject(),
+          bio: ' ', // Default or empty
+          profileImage: '', // Default or empty
+          socialMediaLinks: [], // Default or empty
+          numberOfStudentsEnrolled: 0, // Default value
+          numberOfCoursesProvided: 0, // Default value
+          courses: [], // Default or empty
+          students: [], // Default or empty
+        });
+        await instructor.save();
+      } else if (user.role === 'STUDENT') {
+        const student = new this.StudentModel({
+          ...verifiedUser.toObject(),
+          coursesEnrolled: [], // Default or empty
+        });
+        await student.save();
+      }
+      
       return { message: 'Email successfully verified' };
     } catch (error) {
       if (
@@ -366,8 +412,6 @@ export class AuthService {
 
   async resetPassword(userId: string, newPassword: string): Promise<void> {
     try {
-     
-
       // Find the user
       const user = await this.userModel.findById(userId);
       if (!user) {
@@ -396,48 +440,72 @@ export class AuthService {
 
       await this.mailService.transporter.sendMail(mailOptions);
     } catch (error) {
-      if (error.name === 'JsonWebTokenError' || error.name === 'TokenExpiredError') {
+      if (
+        error.name === 'JsonWebTokenError' ||
+        error.name === 'TokenExpiredError'
+      ) {
         throw new BadRequestException('Invalid or expired reset token');
       }
-      throw new InternalServerErrorException('Failed to reset password', error.stack);
+      throw new InternalServerErrorException(
+        'Failed to reset password',
+        error.stack,
+      );
     }
   }
 
-  async logout(userId: string, refreshToken: string, accessToken?: string): Promise<{ message: string }> {
+  async logout(
+    userId: string,
+    refreshToken: string,
+    accessToken?: string,
+  ): Promise<{ message: string }> {
     try {
       const userExists = await this.userModel.exists({ _id: userId });
       if (!userExists) {
         throw new NotFoundException('User not found');
       }
-  
+
       if (refreshToken) {
-        await this.TokenBlacklistService.blacklistToken(refreshToken, 30 * 24 * 60 * 60);
+        await this.TokenBlacklistService.blacklistToken(
+          refreshToken,
+          30 * 24 * 60 * 60,
+        );
       }
-  
+
       if (accessToken) {
         await this.TokenBlacklistService.blacklistToken(accessToken, 60 * 60);
       }
-  
+
       return { message: `User ${userId} has logged out successfully.` };
     } catch (error) {
       throw new InternalServerErrorException('Failed to log out user');
     }
   }
-  
-  async refreshToken(refreshToken: string): Promise<{ accessToken: string; refreshToken: string }> {
+
+  async refreshToken(
+    refreshToken: string,
+  ): Promise<{ accessToken: string; refreshToken: string }> {
     try {
-      const decoded = this.jwtService.verify(refreshToken, { secret: process.env.JWT_REFRESH_SECRET });
+      const decoded = this.jwtService.verify(refreshToken, {
+        secret: process.env.JWT_REFRESH_SECRET,
+      });
       const userId = decoded.userId;
 
       // Optionally, check if the refresh token is in a blacklist
-      const isTokenBlacklisted = await this.TokenBlacklistService.isTokenBlacklisted(refreshToken);
+      const isTokenBlacklisted =
+        await this.TokenBlacklistService.isTokenBlacklisted(refreshToken);
       if (isTokenBlacklisted) {
         throw new UnauthorizedException('Refresh token has been invalidated');
       }
 
       // Generate new tokens
-      const newAccessToken = this.jwtService.sign({ userId }, { secret: process.env.JWT_ACCESS_SECRET, expiresIn: '15m' });
-      const newRefreshToken = this.jwtService.sign({ userId }, { secret: process.env.JWT_REFRESH_SECRET, expiresIn: '7d' });
+      const newAccessToken = this.jwtService.sign(
+        { userId },
+        { secret: process.env.JWT_ACCESS_SECRET, expiresIn: '5h' },
+      );
+      const newRefreshToken = this.jwtService.sign(
+        { userId },
+        { secret: process.env.JWT_REFRESH_SECRET, expiresIn: '7d' },
+      );
 
       // Optionally, update the refresh token in the database if needed
 
@@ -451,7 +519,7 @@ export class AuthService {
     const [accessToken, refreshToken] = await Promise.all([
       this.jwtService.signAsync(
         { sub: userId, email, role },
-        { secret: process.env.JWT_ACCESS_SECRET, expiresIn: '15m' },
+        { secret: process.env.JWT_ACCESS_SECRET, expiresIn: '5h' },
       ),
       this.jwtService.signAsync(
         { sub: userId, email, role },
