@@ -1,34 +1,44 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Delete, Request, UnauthorizedException, UseGuards } from '@nestjs/common';
 import { UserService } from './user.service';
-import { CreateUserDto } from './dto/create-user.dto';
-import { UpdateUserDto } from './dto/update-user.dto';
+import { AccessTokenGuard } from 'src/auth/guards/accessToken.guard';
+import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
 
+@ApiTags('user')
+@ApiBearerAuth() // Indicates that the endpoint requires a Bearer token for authorization
 @Controller('user')
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
-  // @Post()
-  // create(@Body() createUserDto: CreateUserDto) {
-  //   return this.userService.create(createUserDto);
-  // }
+  @Delete()
+  @UseGuards(AccessTokenGuard)
+  @ApiOperation({
+    summary: 'Delete a user',
+    description: 'Deletes the user based on the ID extracted from the JWT token.',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'User successfully deleted.',
+    schema: {
+      example: {
+        message: 'User successfully deleted',
+      },
+    },
+  })
+  @ApiResponse({
+    status: 401,
+    description: 'Unauthorized. User ID not found or invalid token.',
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'User not found.',
+  })
+  async deleteUser(@Request() req: any): Promise<{ message: string }> {
+    const userId = req.user.sub; // Extract user ID from the request
+    if (!userId) {
+      throw new UnauthorizedException('User ID not found');
+    }
 
-  // @Get()
-  // findAll() {
-  //   return this.userService.findAll();
-  // }
-
-  // @Get(':id')
-  // findOne(@Param('id') id: string) {
-  //   return this.userService.findOne(+id);
-  // }
-
-  // @Patch(':id')
-  // update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
-  //   return this.userService.update(+id, updateUserDto);
-  // }
-
-  // @Delete(':id')
-  // remove(@Param('id') id: string) {
-  //   return this.userService.remove(+id);
-  // }
+    await this.userService.deleteUser(userId);
+    return { message: 'User successfully deleted' };
+  }
 }
