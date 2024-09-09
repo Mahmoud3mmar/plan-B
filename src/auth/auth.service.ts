@@ -21,8 +21,8 @@ import { SignUpAuthDto } from './dto/signup.auth.dto';
 import { LoginAuthDto } from './dto/login.auth.dto';
 import { VerifyOtpDto } from './dto/verify.otp.dto';
 import { TokenBlacklistService } from '../token-blacklist/token-blacklist.service';
-import { Instructor } from 'src/instructor/entities/instructor.entity';
-import { Student } from 'src/student/entities/student.entity';
+import { Instructor } from '../instructor/entities/instructor.entity';
+import { Student } from '../student/entities/student.entity';
 @Injectable()
 export class AuthService {
   constructor(

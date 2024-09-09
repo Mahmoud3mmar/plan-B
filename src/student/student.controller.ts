@@ -3,7 +3,7 @@ import { StudentService } from './student.service';
 import { CreateStudentDto } from './dto/create-student.dto';
 import { UpdateStudentDto } from './dto/update.student.dto';
 import { ApiConsumes, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
-import { AccessTokenGuard } from 'src/auth/guards/accessToken.guard';
+import { AccessTokenGuard } from '../auth/guards/accessToken.guard';
 import { Student } from './entities/student.entity';
 import { FileInterceptor } from '@nestjs/platform-express';
 

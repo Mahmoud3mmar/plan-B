@@ -1,6 +1,6 @@
 import { Controller, Delete, Request, UnauthorizedException, UseGuards } from '@nestjs/common';
 import { UserService } from './user.service';
-import { AccessTokenGuard } from 'src/auth/guards/accessToken.guard';
+import { AccessTokenGuard } from '../auth/guards/accessToken.guard';
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
 
 @ApiTags('user')

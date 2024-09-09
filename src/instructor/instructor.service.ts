@@ -4,8 +4,8 @@ import { Instructor } from './entities/instructor.entity';
 import { Model } from 'mongoose';
 import { InjectModel } from '@nestjs/mongoose';
 import { UpdateInstructorDto } from './dto/update.instructor.dto';
-import { User } from 'src/user/entities/user.entity';
-import { CloudinaryService } from 'src/cloudinary/cloudinary.service';
+import { User } from '../user/entities/user.entity';
+import { CloudinaryService } from '../cloudinary/cloudinary.service';
 
 @Injectable()
 export class InstructorService {

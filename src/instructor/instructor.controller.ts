@@ -20,7 +20,7 @@ import { InstructorService } from './instructor.service';
 import { UpdateInstructorDto } from './dto/update.instructor.dto';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { Instructor } from './entities/instructor.entity';
-import { AccessTokenGuard } from 'src/auth/guards/accessToken.guard';
+import { AccessTokenGuard } from '../auth/guards/accessToken.guard';
 import { FileInterceptor } from '@nestjs/platform-express';
 
 @ApiTags('instructor')

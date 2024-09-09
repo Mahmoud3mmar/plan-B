@@ -9,8 +9,8 @@ import { AccessTokenStrategy } from './accessToken.strategy';
 import { RefreshTokenStrategy } from './refreshToken.strategy';
 import { MailService } from '../Email.Service';
 import { TokenBlacklistModule } from '../token-blacklist/token-blacklist.module';
-import { Instructor, InstructorSchema } from 'src/instructor/entities/instructor.entity';
-import { Student, StudentSchema } from 'src/student/entities/student.entity';
+import { Instructor, InstructorSchema } from '../instructor/entities/instructor.entity';
+import { Student, StudentSchema } from '../student/entities/student.entity';
 
 @Module({
   imports: [

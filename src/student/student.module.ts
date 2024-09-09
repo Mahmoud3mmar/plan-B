@@ -3,7 +3,7 @@ import { StudentService } from './student.service';
 import { StudentController } from './student.controller';
 import { Student, StudentSchema } from './entities/student.entity';
 import { MongooseModule } from '@nestjs/mongoose';
-import { CloudinaryService } from 'src/cloudinary/cloudinary.service';
+import { CloudinaryService } from '../cloudinary/cloudinary.service';
 
 @Module({
   imports: [

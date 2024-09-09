@@ -3,8 +3,8 @@ import { InstructorService } from './instructor.service';
 import { InstructorController } from './instructor.controller';
 import { MongooseModule } from '@nestjs/mongoose';
 import { Instructor, InstructorSchema } from './entities/instructor.entity';
-import { User, UserSchema } from 'src/user/entities/user.entity';
-import { CloudinaryService } from 'src/cloudinary/cloudinary.service';
+import { User, UserSchema } from '../user/entities/user.entity';
+import { CloudinaryService } from '../cloudinary/cloudinary.service';
 
 @Module({
   imports: [
