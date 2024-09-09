@@ -1,35 +1,26 @@
-
-
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { Role } from '../common utils/Role.enum';
 import mongoose from 'mongoose';
+import { Role } from '../common utils/Role.enum';
 
-
-
-
-
-@Schema({ timestamps: true ,discriminatorKey: 'role'})
-export class User  {
+@Schema({ timestamps: true, discriminatorKey: 'role' })
+export class User {
   @Prop({ type: mongoose.Schema.Types.ObjectId, auto: true })
   _id?: mongoose.Types.ObjectId;
-  
-  @Prop({ required: true })
-  firstName: string;  // New field
 
   @Prop({ required: true })
-  lastName: string;   // New field
+  firstName: string;
 
   @Prop({ required: true })
-  phoneNumber: string; // New field
+  lastName: string;
+
+  @Prop({ required: true })
+  phoneNumber: string;
 
   @Prop({ required: true, unique: true })
   email: string;
 
   @Prop({ required: true })
   password: string;
-
-
-
 
   @Prop({ nullable: true })
   otp?: string;
@@ -40,7 +31,7 @@ export class User  {
   @Prop({ nullable: true })
   refreshToken?: string;
 
-  @Prop({ type: String, enum: Role, default: Role.STUDENT })
+  @Prop({ type: String, enum: Role,required: true})
   role: Role;
 
   @Prop({ nullable: true })
@@ -49,13 +40,8 @@ export class User  {
   @Prop({ nullable: true })
   resetPasswordExpires?: Date;
 
-  @Prop({ nullable: true })
-
-
-
-  @Prop({default:false})
+  @Prop({ default: false })
   isVerified: boolean;
-
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);
