@@ -14,18 +14,22 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { CourseCurriculmModule } from './course-curriculm/course-curriculm.module';
 import { StudentModule } from './student/student.module';
 import { TokenBlacklistModule } from './token-blacklist/token-blacklist.module';
+import { User, UserSchema } from './user/entities/user.entity';
+import { Instructor, InstructorSchema } from './instructor/entities/instructor.entity';
 
 @Module({
   imports: [AuthModule, UserModule, CourseModule, FaqsModule, InstructorModule, ReviewModule, SummertrainingModule,
     ConfigModule.forRoot({
     isGlobal: true,
   }),
+ 
   MongooseModule.forRoot(process.env.MONGODB_URI),
   CourseCurriculmModule,
   StudentModule,
   TokenBlacklistModule
 ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [AppService
+  ,],
 })
 export class AppModule {}
