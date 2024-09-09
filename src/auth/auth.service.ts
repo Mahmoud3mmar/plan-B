@@ -60,7 +60,7 @@ export class AuthService {
       }
 
       // Hash the password
-      const salt = await bcrypt.genSalt();
+      // const salt = await bcrypt.genSalt();
       const hashedPassword = await bcrypt.hash(password, 10);
 
       // Create new user
@@ -447,20 +447,17 @@ export class AuthService {
     }
   }
 
-  async generateTokens(
-    userId: string,
-    email: string,
-    role: string,
-  ): Promise<{ accessToken: string; refreshToken: string }> {
-    const accessToken = this.jwtService.sign(
-      { userId, email, role },
-      { secret: process.env.JWT_ACCESS_SECRET, expiresIn: '15m' }, // Access token expires in 15 minutes
-    );
-
-    const refreshToken = this.jwtService.sign(
-      { userId, email, role },
-      { secret: process.env.JWT_REFRESH_SECRET, expiresIn: '7d' }, // Refresh token expires in 7 days
-    );
+  private async generateTokens(userId: string, email: string, role: string) {
+    const [accessToken, refreshToken] = await Promise.all([
+      this.jwtService.signAsync(
+        { sub: userId, email, role },
+        { secret: process.env.JWT_ACCESS_SECRET, expiresIn: '15m' },
+      ),
+      this.jwtService.signAsync(
+        { sub: userId, email, role },
+        { secret: process.env.JWT_REFRESH_SECRET, expiresIn: '7d' },
+      ),
+    ]);
 
     return { accessToken, refreshToken };
   }
