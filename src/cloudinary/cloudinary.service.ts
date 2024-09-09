@@ -1,35 +1,22 @@
 import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { UploadApiErrorResponse, UploadApiResponse, v2 } from 'cloudinary';
 import toStream = require('buffer-to-stream');
-@Injectable()
+import * as dotenv from 'dotenv';
 
+dotenv.config(); // Load environment variables
+
+@Injectable()
 export class CloudinaryService {
-  // async uploadImage(
-  //   file: Express.Multer.File,
-  // ): Promise<UploadApiResponse | UploadApiErrorResponse> {
-  //   return new Promise((resolve, reject) => {
-  //     try {
-  //       const upload = v2.uploader.upload_stream((error, result) => {
-  //         if (error) {
-  //           // Handle the error, log it if necessary
-  //           // console.error('Cloudinary upload error:', error);
-  //           return reject(new InternalServerErrorException('Failed to upload image'));
-  //         }
-  //         resolve(result);
-  //       });
-  
-  //       // Convert the file buffer into a readable stream and pipe it to Cloudinary
-  //       toStream(file.buffer).pipe(upload);
-  //     } catch (error) {
-  //       // Handle any synchronous errors that might occur
-  //       // console.error('Error during file upload:', error);
-  //       reject(new InternalServerErrorException('Unexpected error occurred during upload'));
-  //     }
-  //   });
-  // }
+  constructor() {
+    v2.config({
+      cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+      api_key: process.env.CLOUDINARY_API_KEY,
+      api_secret: process.env.CLOUDINARY_API_SECRET,
+    });
+  }
 
   async uploadImage(
-    file: Express.Multer.File,
+    image: Express.Multer.File,
     folderName: string,
   ): Promise<UploadApiResponse | UploadApiErrorResponse> {
     return new Promise((resolve, reject) => {
@@ -43,8 +30,7 @@ export class CloudinaryService {
         },
       );
   
-      toStream(file.buffer).pipe(upload);
+      toStream(image.buffer).pipe(upload);
     });
   }
-  
 }
