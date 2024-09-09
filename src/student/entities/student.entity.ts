@@ -7,8 +7,8 @@ export class Student extends User {
   @Prop({ type: [Types.ObjectId], ref: 'Course' })
   coursesEnrolled: Types.ObjectId[];
 
-  @Prop({ type: Map, of: Number }) // Map of courseId -> progress %
-  progress: Record<string, number>;
+  @Prop({ required: false })
+  profileImage?: string; // Optional field for profile image URL
 }
 
 export const StudentSchema = SchemaFactory.createForClass(Student);
