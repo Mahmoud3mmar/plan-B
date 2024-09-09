@@ -3,12 +3,15 @@ import { InstructorService } from './instructor.service';
 import { InstructorController } from './instructor.controller';
 import { MongooseModule } from '@nestjs/mongoose';
 import { Instructor, InstructorSchema } from './entities/instructor.entity';
+import { User, UserSchema } from 'src/user/entities/user.entity';
+import { CloudinaryService } from 'src/cloudinary/cloudinary.service';
 
 @Module({
   imports: [
-    MongooseModule.forFeature([{ name: Instructor.name, schema: InstructorSchema }]),
+    MongooseModule.forFeature([{ name: Instructor.name, schema: InstructorSchema },
+    { name: User.name, schema: UserSchema }]),
   ],
   controllers: [InstructorController],
-  providers: [InstructorService],
+  providers: [InstructorService,CloudinaryService],
 })
 export class InstructorModule {}
