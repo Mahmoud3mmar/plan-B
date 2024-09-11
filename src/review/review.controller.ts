@@ -20,11 +20,11 @@ import {
   ApiResponse,
   ApiTags,
 } from '@nestjs/swagger';
-import { AccessTokenGuard } from 'src/auth/guards/accessToken.guard';
+import { AccessTokenGuard } from '../auth/guards/accessToken.guard';
 import { CreateReviewDto } from './dto/create.review.dto';
-import { RolesGuard } from 'src/auth/guards/role.guards';
-import { Role } from 'src/user/common utils/Role.enum';
-import { Roles } from 'src/auth/Roles.decorator';
+import { RolesGuard } from '../auth/guards/role.guards';
+import { Role } from '../user/common utils/Role.enum';
+import { Roles } from '../auth/Roles.decorator';
 import { UpdateReviewDto } from './dto/update.review.dto';
 
 @ApiTags('review')

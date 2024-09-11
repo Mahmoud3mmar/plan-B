@@ -4,7 +4,7 @@ import { Review } from './entities/review.entity';
 import { Model } from 'mongoose';
 import { CreateReviewDto } from './dto/create.review.dto';
 import { UpdateReviewDto } from './dto/update.review.dto';
-import { Course } from 'src/course/entities/course.entity';
+import { Course } from '../course/entities/course.entity';
 
 
 @Injectable()
