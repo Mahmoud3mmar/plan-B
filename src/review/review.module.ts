@@ -6,7 +6,7 @@ import { Review, ReviewSchema } from './entities/review.entity';
 import { Course, CourseSchema } from '../course/entities/course.entity';
 
 @Module({
-  imports: [MongooseModule.forFeature([{ name: Review.name, schema: ReviewSchema },{ name: Course.name, schema: CourseSchema }])],
+  imports: [MongooseModule.forFeature([{ name: Review.name, schema: ReviewSchema },{ name:Course.name, schema: CourseSchema }])],
 
   controllers: [ReviewController],
   providers: [ReviewService],

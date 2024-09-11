@@ -1,6 +1,6 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, Types } from 'mongoose';
-import { Course } from '../course/entities/course.entity';
+import { Course } from '../../course/entities/course.entity';
 
 @Schema()
 export class Review extends Document {
