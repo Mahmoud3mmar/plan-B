@@ -3,8 +3,13 @@ import { UserService } from './user.service';
 import { UserController } from './user.controller';
 import { MongooseModule } from '@nestjs/mongoose';
 import { User, UserSchema } from './entities/user.entity';
-import { Instructor, InstructorSchema } from '../instructor/entities/instructor.entity';
+import {
+  Instructor,
+  InstructorSchema,
+} from '../instructor/entities/instructor.entity';
 import { Student, StudentSchema } from '../student/entities/student.entity';
+
+import { AuthModule } from '../auth/auth.module';
 
 @Module({
   imports: [
@@ -12,8 +17,10 @@ import { Student, StudentSchema } from '../student/entities/student.entity';
       { name: User.name, schema: UserSchema },
       { name: Instructor.name, schema: InstructorSchema },
       { name: Student.name, schema: StudentSchema },
+
     ]),
-    
+
+    AuthModule,
   ],
   controllers: [UserController],
   providers: [UserService],
