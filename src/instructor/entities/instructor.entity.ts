@@ -13,25 +13,25 @@ class SocialMediaLink {
 @Schema()
 export class Instructor extends User {
  
-  @Prop({ required: true })
+  @Prop({ required: false,default:''  })
   bio: string;
 
-  @Prop({ required: false })
+  @Prop({ required: false ,default:''  })
   profileImage?: string; // New field for profile image URL
 
-  @Prop({ type: [SocialMediaLink], required: true })
+  @Prop({ type: [SocialMediaLink], required: false,default:[] })
   socialMediaLinks: SocialMediaLink[];
 
-  @Prop({ required: true, default: 0 })
+  @Prop({ required: false, default: 0 })
   numberOfStudentsEnrolled: number;
 
-  @Prop({ required: true, default: 0 })
+  @Prop({ required: false, default: 0 })
   numberOfCoursesProvided: number;
 
-  @Prop({ type: [Types.ObjectId], ref: 'Course' })
+  @Prop({ type: [Types.ObjectId], ref: 'Course' ,default:[] })
   courses: Types.ObjectId[];
 
-  @Prop({ type: [Types.ObjectId], ref: 'User' })
+  @Prop({ type: [Types.ObjectId], ref: 'User' ,default:[] })
   students: Types.ObjectId[];
 }
 
