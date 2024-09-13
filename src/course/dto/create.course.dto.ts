@@ -1,6 +1,8 @@
 import { IsEnum, IsNotEmpty, IsNumber, IsString, IsOptional, IsBoolean } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Level } from '../utils/levels.enum';
+import { CourseCategory } from '../utils/course.category';
+import { Transform } from 'class-transformer';
 
 // DTO for creating a Course
 export class CreateCourseDto {
@@ -62,17 +64,13 @@ export class CreateCourseDto {
 
   @ApiProperty({
     description: 'The category of the course',
-    example: 'Web Development',
+    example: CourseCategory.Nursing, // Adjust as needed, or provide a list of examples if desired
+    enum: CourseCategory, // This provides the enum values in the API documentation
   })
   @IsNotEmpty()
-  @IsString()
-  category: string; // Category of the course
+  @IsEnum(CourseCategory)
+  category: CourseCategory;
 
-  @ApiProperty({
-    description: 'Reference to Instructor ID',
-    example: '605c72ef2f8fb8141c8e4e50',
-  })
-  @IsNotEmpty()
-  @IsString()
-  instructor: string; // Reference to Instructor ID
+ 
+
 }
