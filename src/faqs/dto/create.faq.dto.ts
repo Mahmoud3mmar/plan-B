@@ -1,6 +1,5 @@
-import { IsNotEmpty, IsOptional, IsString } from 'class-validator';
-import { Types } from 'mongoose';
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { IsNotEmpty, IsString } from 'class-validator';
+import { ApiProperty } from '@nestjs/swagger';
 
 export class CreateFaqDto {
   @ApiProperty({
@@ -18,12 +17,4 @@ export class CreateFaqDto {
   @IsNotEmpty()
   @IsString()
   answer: string;
-
-  @ApiPropertyOptional({
-    description: 'Optional reference to a course related to this FAQ',
-    type: String,
-    example: '605c72ef2f8fb8141c8e4e50',
-  })
-  @IsOptional()
-  course?: Types.ObjectId; // Reference to Course document, optional for creation
 }
