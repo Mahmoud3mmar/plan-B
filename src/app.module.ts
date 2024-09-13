@@ -16,6 +16,7 @@ import { StudentModule } from './student/student.module';
 import { TokenBlacklistModule } from './token-blacklist/token-blacklist.module';
 import { User, UserSchema } from './user/entities/user.entity';
 import { Instructor, InstructorSchema } from './instructor/entities/instructor.entity';
+import { APP_PIPE } from '@nestjs/core';
 
 @Module({
   imports: [AuthModule, UserModule, CourseModule, FaqsModule, InstructorModule, ReviewModule, SummertrainingModule,
@@ -30,6 +31,7 @@ import { Instructor, InstructorSchema } from './instructor/entities/instructor.e
 ],
   controllers: [AppController],
   providers: [AppService
-  ,],
+  
+  ],
 })
 export class AppModule {}
