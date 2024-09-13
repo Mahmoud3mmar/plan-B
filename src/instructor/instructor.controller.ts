@@ -15,41 +15,52 @@ import {
   UploadedFile,
   BadRequestException,
   InternalServerErrorException,
+  ParseIntPipe,
 } from '@nestjs/common';
 import { InstructorService } from './instructor.service';
 import { UpdateInstructorDto } from './dto/update.instructor.dto';
-import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { ApiOperation, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { Instructor } from './entities/instructor.entity';
 import { AccessTokenGuard } from '../auth/guards/accessToken.guard';
 import { FileInterceptor } from '@nestjs/platform-express';
+import { RolesGuard } from '../auth/guards/role.guards';
+import { Role } from '../user/common utils/Role.enum';
+import { Roles } from '../auth/Roles.decorator';
 
 @ApiTags('instructor')
 @Controller('instructor')
 export class InstructorController {
   constructor(private readonly instructorService: InstructorService) {}
 
-  // @Post()
-  // @ApiOperation({ summary: 'Create a new instructor' })
-  // @ApiResponse({ status: 201, description: 'The instructor has been successfully created.', type: Instructor })
-  // async create(@Body() createInstructorDto: CreateInstructorDto): Promise<Instructor> {
-  //   return this.instructorService.create(createInstructorDto);
-  // }
+
 
   @Get()
-  @ApiOperation({ summary: 'Get all instructors with pagination' })
+  @UseGuards(AccessTokenGuard)
+  @ApiOperation({ summary: 'Retrieve a list of instructors with pagination and sorting' })
   @ApiResponse({
     status: 200,
-    description: 'List of instructors with pagination',
+    description: 'Successfully retrieved the list of instructors',
     type: [Instructor],
   })
-  async findAll(
-    @Query('page') page: number = 1,
-    @Query('limit') limit: number = 10,
+  @ApiQuery({ name: 'page', description: 'Page number', required: false, type: Number, example: 1 })
+  @ApiQuery({ name: 'limit', description: 'Number of items per page', required: false, type: Number, example: 10 })
+  @ApiQuery({ name: 'sortOrder', description: 'Sort order (asc or desc)', required: false, enum: ['asc', 'desc'], example: 'asc' })
+  // @Roles(Role.INSTRUCTOR)
+  async getInstructors(
+    @Query('page', ParseIntPipe) page: number = 1,
+    @Query('limit', ParseIntPipe) limit: number = 10,
+    @Query('sortOrder') sortOrder: 'asc' | 'desc' = 'asc',
   ): Promise<{ data: Instructor[]; total: number }> {
-    return this.instructorService.findAll(page, limit);
+    return this.instructorService.getInstructors(page, limit, sortOrder);
   }
 
+
+
+
+
+  //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   @Get(':id')
+  @UseGuards(AccessTokenGuard)
   @ApiOperation({ summary: 'Get a specific instructor by ID' })
   @ApiResponse({
     status: 200,
@@ -61,8 +72,11 @@ export class InstructorController {
     return this.instructorService.findOne(id);
   }
 
+
+  //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   @Put()
-  @UseGuards(AccessTokenGuard)
+  @UseGuards(AccessTokenGuard,RolesGuard)
+  @Roles(Role.INSTRUCTOR) 
   @ApiOperation({ summary: 'Update an instructor by ID' })
   @ApiResponse({
     status: 200,
@@ -84,8 +98,13 @@ export class InstructorController {
     return this.instructorService.updateInstructor(userId, updateInstructorDto);
   }
 
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+
   @Post('profile/image')
-  @UseGuards(AccessTokenGuard)
+  @UseGuards(AccessTokenGuard,RolesGuard)
+  @Roles(Role.INSTRUCTOR)
   @UseInterceptors(FileInterceptor('image'))
   @ApiOperation({
     summary: 'Upload a profile image for a specific instructor by ID',
@@ -108,14 +127,11 @@ export class InstructorController {
     }
     return await this.instructorService.UploadProfileImage(userId, image);
   }
-  @Delete(':id')
-  @ApiOperation({ summary: 'Delete a specific instructor by ID' })
-  @ApiResponse({
-    status: 204,
-    description: 'The instructor has been successfully deleted.',
-  })
-  @ApiResponse({ status: 404, description: 'Instructor not found' })
-  async remove(@Param('id') id: string): Promise<void> {
-    return this.instructorService.remove(id);
-  }
+
+
+
+
+
+
+
 }

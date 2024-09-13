@@ -21,40 +21,68 @@ export class InstructorService {
   //   return await instructor.save();
   // }
 
-  async findAll(page: number = 1, limit: number = 10): Promise<{ data: Instructor[], total: number }> {
-    const skip = (page - 1) * limit;
-    const [data, total] = await Promise.all([
-      this.instructorModel.find().skip(skip).limit(limit).exec(),
-      this.instructorModel.countDocuments().exec(),
-    ]);
-    return { data, total };
-  }
+  async getInstructors(
+    page: number = 1,
+    limit: number = 10,
+    sortOrder: 'asc' | 'desc' = 'asc',
+  ): Promise<{ data: Instructor[]; total: number }> {
+    try {
+      const skip = (page - 1) * limit;
+      const sort: { [key: string]: 1 | -1 } = { name: sortOrder === 'asc' ? 1 : -1 }; // Correctly specifying sort
 
+      const [total, data] = await Promise.all([
+        this.instructorModel.countDocuments().exec(),
+        this.instructorModel.find().skip(skip).limit(limit).sort(sort).exec(),
+      ]);
+
+      return { data, total };
+    } catch (error) {
+      throw new InternalServerErrorException('Failed to retrieve instructors', error.message);
+    }
+  }
   async findOne(id: string): Promise<Instructor> {
     const instructor = await this.instructorModel.findById(id).exec();
     if (!instructor) {
       throw new NotFoundException(`Instructor with ID ${id} not found`);
     }
     return instructor;
-  }
+  }  
+  
+  
+  
+  
   async updateInstructor(
     userId: string,
     updateInstructorDto: UpdateInstructorDto,
   ): Promise<Instructor> {
-    // Find the instructor by ID
-    const instructor = await this.instructorModel.findById(userId).exec();
-    if (!instructor) {
-      throw new NotFoundException(`Instructor with ID ${userId} not found`);
+    try {
+      // Find the instructor by ID
+      const instructor = await this.instructorModel.findById(userId).exec();
+      // if (!instructor) {
+      //   throw new NotFoundException(`Instructor with ID ${userId} not found`);
+      // }
+
+      // Update instructor details
+      const updatedInstructor = Object.assign(instructor, updateInstructorDto);
+
+      // Save the updated instructor
+      await updatedInstructor.save();
+
+      // Update corresponding user details if needed
+      const user = await this.UserModel.findById(userId).exec();
+      if (user) {
+        // Update user details if necessary, e.g., update profileImage or other user-related info
+        const { firstName, lastName } = updateInstructorDto;
+        if ( firstName || lastName) {
+          const updatedUser = Object.assign(user, {firstName, lastName });
+          await updatedUser.save();
+        }
+      }
+
+      return updatedInstructor;
+    } catch (error) {
+      throw new InternalServerErrorException('Failed to update instructor');
     }
-
-    // Update instructor details
-    // Merge incoming data with existing data
-    const updatedInstructor = Object.assign(instructor, updateInstructorDto);
-
-    // Save the updated instructor
-    await updatedInstructor.save();
-    
-    return updatedInstructor;
   }
 
 
@@ -92,9 +120,9 @@ export class InstructorService {
 
     try {
       const instructor = await this.instructorModel.findById(userId).exec();
-      if (!instructor) {
-        throw new NotFoundException(`Instructor with ID ${userId} not found.`);
-      }
+      // if (!instructor) {
+      //   throw new NotFoundException(`Instructor with ID ${userId} not found.`);
+      // }
       const folderName = 'profileImages'; // or any other dynamic name based on context
       const uploadResult = await this.CloudinaryService.uploadImage(image,folderName);
 
