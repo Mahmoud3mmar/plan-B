@@ -13,4 +13,4 @@ export class CourseCurriculum extends Document {
   duration: number; // Duration in hours
 }
 
-export const CurriculumSchema = SchemaFactory.createForClass(CourseCurriculum);
+export const CourseCurriculumSchema = SchemaFactory.createForClass(CourseCurriculum);
