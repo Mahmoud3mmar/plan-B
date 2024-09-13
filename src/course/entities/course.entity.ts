@@ -9,6 +9,9 @@ import { Level } from '../utils/levels.enum';
 
 @Schema({ timestamps: true })
 export class Course extends Document {
+  
+  
+  
   @Prop({ required: true, maxlength: 255 })
   name: string;
 
@@ -34,17 +37,18 @@ export class Course extends Document {
   @Prop({ required: true })
   numberOfQuizzes: number;
 
-  @Prop({ type: [{ type: MongooseSchema.Types.ObjectId, ref: 'Curriculum' }], required: true })
-  Coursecurriculum: CourseCurriculum[]; // References to Curriculum entities
+  @Prop({ type: [{ type: MongooseSchema.Types.ObjectId, ref: 'CourseCurriculum' }], required: true, default: [] })
+  courseCurriculum: CourseCurriculum[]; // Ensure the name matches
 
   @Prop({ type: MongooseSchema.Types.ObjectId, ref: 'Instructor', required: true })
-  instructor: Instructor; // Reference to Instructor
+  instructor: Instructor;
 
-  @Prop({ type: [{ type: MongooseSchema.Types.ObjectId, ref: 'FAQ' }], default: [] })
-  faqs: Faq[]; // References to FAQ entities
+  @Prop({ type: [{ type: MongooseSchema.Types.ObjectId, ref: 'Faq' }], default: [] })
+  faqs: Faq[];
 
   @Prop({ type: [{ type: MongooseSchema.Types.ObjectId, ref: 'Review' }], default: [] })
-  reviews: Review[]; // References to Review entities
+  reviews: Review[];
+
 
   @Prop({type: Number, required: true })
   price: number; // Decimal value, represented as a number
@@ -57,6 +61,9 @@ export class Course extends Document {
   
   @Prop({ type: Number, default: 0 })
   rating: number; // Rating calculated from reviews
+
+  @Prop({ type: String, required: false })
+  imageUrl?: string; // URL of the course image
 }
 
 export const CourseSchema = SchemaFactory.createForClass(Course);
