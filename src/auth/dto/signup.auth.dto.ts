@@ -34,11 +34,6 @@ export class SignUpAuthDto {
   @IsString()
   confirmPassword: string;
 
-  @ApiProperty({ example: 'user', description: 'Role of the user (e.g., user, admin)' })
-  @IsNotEmpty()
-  @IsString()
-  @IsEnum(Role) // Assuming Role is an enum with values like 'USER' and 'ADMIN'
-  role: Role;
 }
 
 
