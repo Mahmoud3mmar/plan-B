@@ -31,7 +31,7 @@ export class User {
   @Prop({ nullable: true })
   refreshToken?: string;
 
-  @Prop({ type: String, enum: Role,required: true})
+  @Prop({ type: String, enum: Role,required: true,default: Role.STUDENT })
   role: Role;
 
   @Prop({ nullable: true })
