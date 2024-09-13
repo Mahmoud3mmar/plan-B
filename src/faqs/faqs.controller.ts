@@ -1,24 +1,36 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Put, Query } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Put, Query, UseGuards } from '@nestjs/common';
 import { FaqsService } from './faqs.service';
 import { CreateFaqDto } from './dto/create.faq.dto';
 import { UpdateFaqDto } from './dto/update.faq.dto';
-import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { ApiOperation, ApiParam, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { Faq } from './entities/faq.entity';
+import { AccessTokenGuard } from '../auth/guards/accessToken.guard';
+import { Types } from 'mongoose';
 
-@ApiTags('faqs')
+@ApiTags('FAQs')
 @Controller('faqs')
 export class FaqsController {
-  constructor(private readonly faqsService: FaqsService) {}
+  constructor(private readonly FaqsService: FaqsService) {}
 
-  @Post()
+  @Post(':courseId')
+  @UseGuards(AccessTokenGuard)
+
   @ApiOperation({ summary: 'Create a new FAQ' })
-  @ApiResponse({ status: 201, description: 'The FAQ has been successfully created.', type: Faq })
-  @ApiResponse({ status: 400, description: 'Bad request.' })
-  async create(@Body() createFaqDto: CreateFaqDto): Promise<Faq> {
-    return this.faqsService.create(createFaqDto);
+  @ApiParam({
+    name: 'courseId',
+    description: 'The ID of the course related to the FAQ',
+    type: String,
+  })
+  async create(
+    @Body() createFaqDto: CreateFaqDto,
+    @Param('courseId') courseId:string,
+  ): Promise<Faq> {
+    return this.FaqsService.create(createFaqDto, courseId);
   }
-
+  ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   @Get()
+  @UseGuards(AccessTokenGuard)
+
   @ApiOperation({ summary: 'Retrieve all FAQs with pagination' })
   @ApiResponse({ status: 200, description: 'List of FAQs with pagination.', type: [Faq] })
   @ApiResponse({ status: 404, description: 'No FAQs found.' })
@@ -26,18 +38,20 @@ export class FaqsController {
     @Query('page') page = 1, 
     @Query('limit') limit = 10
   ): Promise<{ data: Faq[], total: number }> {
-    return this.faqsService.findAll(page, limit);
+    return this.FaqsService.findAll(page, limit);
   }
-
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   @Get(':id')
+  @UseGuards(AccessTokenGuard)
   @ApiOperation({ summary: 'Retrieve a specific FAQ by ID' })
   @ApiResponse({ status: 200, description: 'The FAQ details.', type: Faq })
   @ApiResponse({ status: 404, description: 'FAQ not found.' })
   async findOne(@Param('id') id: string): Promise<Faq> {
-    return this.faqsService.findOne(id);
+    return this.FaqsService.findOne(id);
   }
-
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   @Put(':id')
+  @UseGuards(AccessTokenGuard)
   @ApiOperation({ summary: 'Update an existing FAQ by ID' })
   @ApiResponse({ status: 200, description: 'The updated FAQ.', type: Faq })
   @ApiResponse({ status: 404, description: 'FAQ not found.' })
@@ -46,14 +60,16 @@ export class FaqsController {
     @Param('id') id: string,
     @Body() updateFaqDto: UpdateFaqDto,
   ): Promise<Faq> {
-    return this.faqsService.update(id, updateFaqDto);
+    return this.FaqsService.update(id, updateFaqDto);
   }
-
-  @Delete(':id')
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+  @Delete(':faqId')
+  @UseGuards(AccessTokenGuard)
   @ApiOperation({ summary: 'Delete an FAQ by ID' })
   @ApiResponse({ status: 204, description: 'The FAQ has been successfully deleted.' })
   @ApiResponse({ status: 404, description: 'FAQ not found.' })
-  async remove(@Param('id') id: string): Promise<void> {
-    return this.faqsService.remove(id);
+  async remove(@Param('faqId') faqId: string): Promise<string> {
+    return this.FaqsService.remove(faqId);
   }
+
 }
