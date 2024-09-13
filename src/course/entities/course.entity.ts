@@ -40,7 +40,7 @@ export class Course extends Document {
   @Prop({ type: [{ type: MongooseSchema.Types.ObjectId, ref: 'CourseCurriculum' }], required: true, default: [] })
   courseCurriculum: CourseCurriculum[]; // Ensure the name matches
 
-  @Prop({ type: MongooseSchema.Types.ObjectId, ref: 'Instructor', required: true })
+  @Prop({ type: MongooseSchema.Types.ObjectId, ref: 'Instructor', required: false })
   instructor: Instructor;
 
   @Prop({ type: [{ type: MongooseSchema.Types.ObjectId, ref: 'Faq' }], default: [] })

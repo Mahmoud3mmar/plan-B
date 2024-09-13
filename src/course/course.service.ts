@@ -1,5 +1,6 @@
 import {
   BadRequestException,
+  ConflictException,
   ForbiddenException,
   Injectable,
   InternalServerErrorException,
@@ -23,39 +24,33 @@ export class CourseService {
     @InjectModel(User.name) private readonly userModel: Model<User>,
     private readonly CloudinaryService: CloudinaryService,
   ) {}
-
   async createCourse(
     createCourseDto: CreateCourseDto,
-    instructorId?: string,
   ): Promise<Course> {
     try {
-      // If an instructorId is provided, validate the instructor
-      if (instructorId) {
-        const instructor = await this.userModel.findById(instructorId).exec();
+      // Initialize instructor with null
+      const courseData = {
+        ...createCourseDto,
+        instructor: null, // Initialize with null to allow for later assignment
+      };
 
-        if (!instructor) {
-          throw new NotFoundException('Instructor not found');
-        }
+      // Create the course with the instructor field set to null
+      return await this.courseModel.create(courseData);
 
-        if (instructor.role !== Role.INSTRUCTOR) {
-          throw new ForbiddenException('User is not an instructor');
-        }
-
-        // Create the course with the validated instructorId
-        return await this.courseModel.create({
-          ...createCourseDto,
-          instructor: instructorId, // Associate the validated instructor
-        });
-      }
-
-      // Create the course without the instructor validation if no instructorId is provided
-      return await this.courseModel.create(createCourseDto);
     } catch (error) {
-      // Handle any unexpected errors
-      throw new InternalServerErrorException(
-        'Failed to create course',
-        error.message,
-      );
+      if (error.name === 'ValidationError') {
+        // Handle validation errors
+        throw new BadRequestException('Invalid data provided for course creation', error.message);
+      } else if (error.code && error.code === 11000) {
+        // Handle duplicate key errors (e.g., unique constraint violations)
+        throw new ConflictException('Course with the provided data already exists', error.message);
+      } else if (error.name === 'MongoServerError' && error.message.includes('E11000')) {
+        // Specific handling for MongoDB duplicate key errors
+        throw new ConflictException('Duplicate course entry detected', error.message);
+      } else {
+        // Handle unexpected errors
+        throw new InternalServerErrorException('Failed to create course', error.message);
+      }
     }
   }
 
@@ -162,6 +157,7 @@ export class CourseService {
     }
   }
   //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+ 
   async findAllCourses(
     page: number = 1,
     limit: number = 10,
@@ -173,32 +169,32 @@ export class CourseService {
       rating?: number;
       level?: string;
     }
-  ): Promise<Course[]> {
+  ): Promise<{ courses: Course[]; total: number; totalPages: number }> {
     const query: FilterQuery<Course> = this.buildQuery(filters);
     const skip = this.calculateSkip(page, limit);
     const sort = this.buildSort(sortOrder);
 
-    console.log('Query:', query); // Log the query to debug
-    console.log('Skip:', skip); // Log skip value for debugging
-    console.log('Sort:', sort); // Log sort value for debugging
-
     try {
-      const courses = await this.courseModel
-        .find(query)
-        .skip(skip)
-        .limit(limit)
-        .sort(sort)
-        .populate('courseCurriculum') // Populate courseCurriculum references
-        .populate('instructor') // Populate instructor details if needed
-        .populate('faqs') // Populate FAQ references
-        .populate('reviews') // Populate Review references
-        .exec();
+      const [total, courses] = await Promise.all([
+        this.courseModel.countDocuments(query).exec(),
+        this.courseModel
+          .find(query)
+          .skip(skip)
+          .limit(limit)
+          .sort(sort)
+          .populate('courseCurriculum')
+          .populate('instructor')
+          .populate('faqs')
+          .populate('reviews')
+          .exec(),
+      ]);
 
-      console.log('Courses found:', courses); // Log the result
-      return courses;
+      const totalPages = Math.ceil(total / limit);
+
+      return { courses, total, totalPages };
     } catch (error) {
       console.error('Error fetching courses:', error);
-      throw error; // or handle the error as appropriate
+      throw new InternalServerErrorException('Failed to fetch courses');
     }
   }
 
@@ -225,12 +221,9 @@ export class CourseService {
         query.isPaid = filters.isPaid;
       }
       if (filters.rating !== undefined) {
-        // Ensure rating is a valid number
         const rating = Number(filters.rating);
         if (!isNaN(rating)) {
           query.rating = rating;
-        } else {
-          console.warn('Invalid rating value:', filters.rating);
         }
       }
       if (filters.level) {
@@ -246,7 +239,52 @@ export class CourseService {
   }
 
   private buildSort(sortOrder: 'asc' | 'desc'): { [key: string]: 1 | -1 } {
-    return { rating: sortOrder === 'asc' ? 1 : -1 }; // Default sorting by rating
+    return { rating: sortOrder === 'asc' ? 1 : -1 };
   }
-  
+
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+// async assignCourseToInstructor(courseId: string, instructorId: string): Promise<Course> {
+//   try {
+//     if (!courseId || !instructorId) {
+//       throw new BadRequestException('Course ID and Instructor ID must be provided');
+//     }
+
+//     // Validate courseId
+//     const course = await this.courseModel.findById(courseId).exec();
+//     if (!course) {
+//       throw new NotFoundException(`Course with ID ${courseId} not found`);
+//     }
+
+//     // Validate instructorId
+//     const instructor = await this.userModel.findById(instructorId).exec();
+//     if (!instructor) {
+//       throw new NotFoundException(`Instructor with ID ${instructorId} not found`);
+//     }
+
+//     if (instructor.role !== 'INSTRUCTOR') { // Replace 'INSTRUCTOR' with your actual role value
+//       throw new ForbiddenException(`User with ID ${instructorId} is not an instructor`);
+//     }
+
+//     // Update course with the new instructor
+//     course.instructor = instructorId;
+//     await course.save();
+
+//     return course;
+//   } catch (error) {
+//     this.handleError(error);
+//   }
+// }
+
+// private handleError(error: any) {
+//   if (error instanceof NotFoundException || error instanceof ForbiddenException) {
+//     throw error; // Rethrow known exceptions
+//   } else if (error instanceof BadRequestException) {
+//     throw new BadRequestException(error.message);
+//   } else {
+//     console.error('Internal server error:', error);
+//     throw new InternalServerErrorException('Failed to assign course to instructor', error.message);
+//   }
+// }
 }

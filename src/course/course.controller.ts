@@ -1,8 +1,8 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, ParseIntPipe, Query, Put, UseGuards, UseInterceptors, UploadedFile, BadRequestException, DefaultValuePipe } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, ParseIntPipe, Query, Put, UseGuards, UseInterceptors, UploadedFile, BadRequestException, DefaultValuePipe, HttpStatus, HttpCode } from '@nestjs/common';
 import { CourseService } from './course.service';
 import { CreateCourseDto } from './dto/create.course.dto';
 import { UpdateCourseDto } from './dto/update.course.dto';
-import { ApiOperation, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { ApiBody, ApiOperation, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { Course } from './entities/course.entity';
 import { Roles } from '../auth/Roles.decorator';
 import { Role } from '../user/common utils/Role.enum';
@@ -10,6 +10,7 @@ import { AccessTokenGuard } from '../auth/guards/accessToken.guard';
 import { RolesGuard } from '../auth/guards/role.guards';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { GetCoursesDto } from './dto/get.courses.dto';
+import { PaginationDto } from 'src/review/dto/get.all.reviews.paginated.dto';
 
 @ApiTags('course')
 @Controller('course')
@@ -17,31 +18,34 @@ export class CourseController {
   constructor(private readonly courseService: CourseService) {}
 
   @Post()
-  @UseGuards(AccessTokenGuard)
-  // @Roles(Role.STUDENT)
+  @HttpCode(HttpStatus.CREATED)
   @ApiOperation({ summary: 'Create a new course' })
+  @ApiBody({
+    description: 'Data to create a new course',
+    type: CreateCourseDto,
+  })
   @ApiResponse({
-    status: 201,
+    status: HttpStatus.CREATED,
     description: 'The course has been successfully created.',
     type: Course,
   })
   @ApiResponse({
-    status: 400,
-    description: 'Bad Request. The request payload is invalid.',
+    status: HttpStatus.BAD_REQUEST,
+    description: 'Invalid input data provided.',
   })
-  @ApiQuery({
-    name: 'instructorId',
-    description: 'Optional ID for the course',
-    required: false,
-    type: String,
+  @ApiResponse({
+    status: HttpStatus.CONFLICT,
+    description: 'A course with the provided data already exists.',
   })
-  async create(
+  @ApiResponse({
+    status: HttpStatus.INTERNAL_SERVER_ERROR,
+    description: 'Failed to create the course due to an internal error.',
+  })
+  async createCourse(
     @Body() createCourseDto: CreateCourseDto,
-    @Query('instructorId') instructorId?: string,
   ): Promise<Course> {
-    // Optionally add the ID to the DTO if provided
-    
-    return this.courseService.createCourse(createCourseDto,instructorId);
+    return await this.courseService.createCourse(createCourseDto);
+
   }
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   // @Get()
@@ -89,7 +93,7 @@ export class CourseController {
     return this.courseService.findOne(id);
   }
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-  @Put()
+  @Put(':CourseId')
   @UseGuards(AccessTokenGuard)
 
   // @UseInterceptors(FileInterceptor('image'))
@@ -104,7 +108,7 @@ export class CourseController {
     description: 'Bad Request. The request payload is invalid.',
   })
   async update(
-    @Query('CourseId') CourseId: string,
+    @Param('CourseId') CourseId: string,
     @Body() updateCourseDto: UpdateCourseDto,
     // @UploadedFile() image: Express.Multer.File,
 
@@ -160,26 +164,65 @@ export class CourseController {
 
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-@Get()
-async getAllCourses(
-  @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
-  @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number,
-  @Query('sortOrder', new DefaultValuePipe('desc')) sortOrder: 'asc' | 'desc',
-  @Query('category') category?: string,
-  @Query('instructorName') instructorName?: string,
-  @Query('isPaid') isPaid?: string,
-  @Query('rating') rating?: string,
-  @Query('level') level?: string
-): Promise<Course[]> {
-  // Convert `isPaid` and `rating` to appropriate types
-  const filters = {
-    category,
-    instructorName,
-    isPaid: isPaid !== undefined ? isPaid === 'true' : undefined,
-    rating: rating ? parseFloat(rating) : undefined,
-    level,
-  };
 
-  return this.courseService.findAllCourses(page, limit,  sortOrder, filters);
-}
+@Get()
+  @ApiResponse({
+    status: 200,
+    description: 'Successfully retrieved courses with pagination and sorting',
+    schema: {
+      type: 'object',
+      properties: {
+        data: {
+          type: 'array',
+          items: { $ref: '#/components/schemas/Course' },
+        },
+        total: { type: 'number' },
+        totalPages: { type: 'number' },
+        page: { type: 'number' },
+        limit: { type: 'number' },
+      },
+    },
+  })
+  @ApiQuery({ name: 'page', required: false, type: Number, example: 1, description: 'Page number for pagination' })
+  @ApiQuery({ name: 'limit', required: false, type: Number, example: 10, description: 'Number of courses per page' })
+  @ApiQuery({ name: 'sortOrder', required: false, type: String, enum: ['asc', 'desc'], example: 'desc', description: 'Sort order for courses' })
+  @ApiQuery({ name: 'category', required: false, type: String, description: 'Filter by course category' })
+  @ApiQuery({ name: 'instructorName', required: false, type: String, description: 'Filter by instructor name' })
+  @ApiQuery({ name: 'isPaid', required: false, type: String, enum: ['true', 'false'], description: 'Filter by whether the course is paid or free' })
+  @ApiQuery({ name: 'rating', required: false, type: String, description: 'Filter by course rating' })
+  @ApiQuery({ name: 'level', required: false, type: String, description: 'Filter by course level' })
+  async getAllCourses(
+    @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
+    @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number,
+    @Query('sortOrder', new DefaultValuePipe('desc')) sortOrder: 'asc' | 'desc',
+    @Query('category') category?: string,
+    @Query('instructorName') instructorName?: string,
+    @Query('isPaid') isPaid?: string,
+    @Query('rating') rating?: string,
+    @Query('level') level?: string
+  ): Promise<{ data: Course[]; total: number; totalPages: number; page: number; limit: number }> {
+    // Convert `isPaid` and `rating` to appropriate types
+    const filters = {
+      category,
+      instructorName,
+      isPaid: isPaid !== undefined ? isPaid === 'true' : undefined,
+      rating: rating ? parseFloat(rating) : undefined,
+      level,
+    };
+
+    // Validate page and limit
+    if (page < 1 || limit < 1) {
+      throw new BadRequestException('Page and limit must be greater than 0');
+    }
+
+    const result = await this.courseService.findAllCourses(page, limit, sortOrder, filters);
+
+    return {
+      data: result.courses,
+      total: result.total,
+      totalPages: result.totalPages,
+      page,
+      limit,
+    };
+  }
 }
