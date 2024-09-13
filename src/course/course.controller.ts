@@ -10,7 +10,7 @@ import { AccessTokenGuard } from '../auth/guards/accessToken.guard';
 import { RolesGuard } from '../auth/guards/role.guards';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { GetCoursesDto } from './dto/get.courses.dto';
-import { PaginationDto } from 'src/review/dto/get.all.reviews.paginated.dto';
+import { PaginationDto } from '../review/dto/get.all.reviews.paginated.dto';
 
 @ApiTags('course')
 @Controller('course')
