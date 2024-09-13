@@ -23,16 +23,18 @@ import { VerifyOtpDto } from './dto/verify.otp.dto';
 import { TokenBlacklistService } from '../token-blacklist/token-blacklist.service';
 import { Instructor } from '../instructor/entities/instructor.entity';
 import { Student } from '../student/entities/student.entity';
+import { createInstructorDto } from '../user/dto/create.instructor.dto';
+import { Role } from '../user/common utils/Role.enum';
 @Injectable()
 export class AuthService {
   constructor(
     @InjectModel(User.name) private readonly userModel: Model<User>,
-    @InjectModel(Instructor.name) private readonly InstructorModel: Model<Instructor>,
+    @InjectModel(Instructor.name) private readonly instructorModel: Model<Instructor>,
     @InjectModel(Student.name) private readonly StudentModel: Model<Student>,
 
     private readonly jwtService: JwtService,
     private readonly mailService: MailService,
-    private readonly TokenBlacklistService: TokenBlacklistService,
+    private readonly TokenBlacklistService: TokenBlacklistService, // Inject TokenBlacklistService
   ) {}
 
   async signUp(signUpAuthDto: SignUpAuthDto): Promise<{ message: string }> {
@@ -43,7 +45,6 @@ export class AuthService {
       email,
       password,
       confirmPassword,
-      role,
     } = signUpAuthDto;
 
     // Check if passwords match
@@ -74,7 +75,6 @@ export class AuthService {
         phoneNumber,
         email,
         password: hashedPassword,
-        role,
       });
 
       // Save user to database
@@ -134,7 +134,7 @@ export class AuthService {
 
   async signIn(
     loginAuthDto: LoginAuthDto,
-  ): Promise<{ accessToken: string; refreshToken: string }> {
+  ): Promise<{ accessToken: string; refreshToken: string; message: string }> {
     const { email, password } = loginAuthDto;
 
     try {
@@ -143,6 +143,15 @@ export class AuthService {
 
       if (!user) {
         throw new UnauthorizedException('Invalid email or password');
+      }
+
+      // Check if the user's email is verified
+      if (!user.isVerified) {
+        return {
+          accessToken: '', // Provide default empty strings
+          refreshToken: '',
+          message: 'Email is not verified',
+        };
       }
 
       // Invalidate the previous refresh token
@@ -158,8 +167,11 @@ export class AuthService {
       // Update the user's record with the new refresh token
       await this.updateRefreshToken(user._id.toString(), tokens.refreshToken);
 
-      return tokens;
-    } catch (error) {
+      return {
+        accessToken: tokens.accessToken,
+        refreshToken: tokens.refreshToken,
+        message: 'Successfully signed in',
+      };    } catch (error) {
       if (error instanceof UnauthorizedException) {
         throw error; // Re-throw known authentication errors
       }
@@ -309,28 +321,29 @@ export class AuthService {
       }
 
       user.isVerified = true;
-      const verifiedUser =await user.save();
+      const verifiedUser = await user.save();
       // Create role-specific entity
-      if (user.role === 'INSTRUCTOR') {
-        const instructor = new this.InstructorModel({
-          ...verifiedUser.toObject(),
-          bio: ' ', // Default or empty
-          profileImage: '', // Default or empty
-          socialMediaLinks: [], // Default or empty
-          numberOfStudentsEnrolled: 0, // Default value
-          numberOfCoursesProvided: 0, // Default value
-          courses: [], // Default or empty
-          students: [], // Default or empty
-        });
-        await instructor.save();
-      } else if (user.role === 'STUDENT') {
+      // if (user.role === 'INSTRUCTOR') {
+      // const instructor = new this.InstructorModel({
+      //   ...verifiedUser.toObject(),
+      //   bio: ' ', // Default or empty
+      //   profileImage: '', // Default or empty
+      //   socialMediaLinks: [], // Default or empty
+      //   numberOfStudentsEnrolled: 0, // Default value
+      //   numberOfCoursesProvided: 0, // Default value
+      //   courses: [], // Default or empty
+      //   students: [], // Default or empty
+      // });
+      // await instructor.save();
+      // }
+      if (user.role === 'STUDENT') {
         const student = new this.StudentModel({
           ...verifiedUser.toObject(),
           coursesEnrolled: [], // Default or empty
         });
         await student.save();
       }
-      
+
       return { message: 'Email successfully verified' };
     } catch (error) {
       if (
@@ -537,4 +550,81 @@ export class AuthService {
     // Update the user's refresh token in the database
     await this.userModel.findByIdAndUpdate(userId, { refreshToken });
   }
+
+
+  async createInstructor(createInstructorDto: createInstructorDto): Promise<{newInstructor:Instructor;message:string}> {
+    const { email, password, firstName, lastName, phoneNumber } = createInstructorDto;
+
+    try {
+        // Hash the password
+        const hashedPassword = await bcrypt.hash(password, 10);
+
+        // Check if the email already exists
+        const existingInstructor = await this.instructorModel.findOne({ email });
+        if (existingInstructor) {
+            throw new ConflictException('An instructor with this email already exists.');
+        }
+
+        // Create the user part
+        const user = new this.userModel({
+            email,
+            password: hashedPassword,
+            firstName,
+            lastName,
+            phoneNumber,
+            role: Role.INSTRUCTOR, // Hardcoded role
+            isVerified: false,
+        });
+
+        // Save the user part
+        await user.save();
+
+        // Create the instructor part
+        const instructor = new this.instructorModel({
+            ...user.toObject(), // Use the user document data
+            bio: '', // Initialize with default values
+            profileImage: '',
+            socialMediaLinks: [],
+            numberOfStudentsEnrolled: 0,
+            numberOfCoursesProvided: 0,
+            courses: [],
+            students: [],
+        });
+
+         const newInstructor = await instructor.save();
+
+
+        const otp = crypto.randomInt(100000, 999999).toString();
+
+        // Generate a JWT token containing the OTP and email
+        const payload = { email, otp };
+        const otpToken = this.jwtService.sign(payload, {
+          secret: process.env.JWT_VERIFY_SECRET, // Ensure this environment variable is correctly set
+          expiresIn: '10m',
+        });
+  
+        // Send OTP email for verification with the token
+        await this.sendOtpEmail(user.email, otp, otpToken);
+  
+        return {
+          newInstructor,
+          message:
+            'Instructor Created successful! let him verify his email using the OTP sent to him.',
+        };
+    } catch (error) {
+        // Handle specific errors
+        if (error instanceof ConflictException) {
+            throw error; // Email already exists
+        }
+
+        // Handle other potential errors
+        if (error instanceof BadRequestException) {
+            throw new BadRequestException('Invalid input data');
+        }
+
+        // General error handling
+        throw new InternalServerErrorException('Failed to create instructor', error.message);
+    }
+}
+
 }
