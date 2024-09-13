@@ -10,7 +10,7 @@ export class Review extends Document {
   @Prop({ required: true, type: Number })
   rating: number; // Rating out of 5
 
-  @Prop({ required: true, type: Types.ObjectId, ref: Course.name })
+  @Prop({ required: true, type: Types.ObjectId, ref: 'Course' })
   courseId: Types.ObjectId;
 
   @Prop({ required: true, type: Types.ObjectId, ref: 'User' })
