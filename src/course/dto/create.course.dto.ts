@@ -58,18 +58,16 @@ export class CreateCourseDto {
     description: 'Indicates if the course is paid or free',
     example: true,
   })
-  @IsOptional()
   @IsBoolean()
-  isPaid?: boolean; // Indicates if the course is paid or free
+  isPaid: boolean; // Indicates if the course is paid or free
 
   @ApiProperty({
     description: 'The category of the course',
     example: CourseCategory.Nursing, // Adjust as needed, or provide a list of examples if desired
     enum: CourseCategory, // This provides the enum values in the API documentation
   })
-  @IsNotEmpty()
-  @IsEnum(CourseCategory)
-  category: CourseCategory;
+  @IsString()
+  categoryId: string;
 
  
 

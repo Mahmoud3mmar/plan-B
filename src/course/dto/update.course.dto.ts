@@ -129,6 +129,8 @@ export class UpdateCourseDto {
   @IsNumber()
   rating?: number;
 
- 
+  @IsOptional()
+  @IsString()
+  categoryId?: string;
  
 }
