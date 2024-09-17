@@ -9,10 +9,10 @@ import { CreateStudentDto } from './dto/create-student.dto';
 import { UpdateStudentDto } from './dto/update.student.dto';
 import { InjectModel } from '@nestjs/mongoose';
 import { Student } from './entities/student.entity';
-import { CloudinaryModule } from '../cloudinary/cloudinary.module';
 import { Model, Types } from 'mongoose';
 import { CloudinaryService } from '../cloudinary/cloudinary.service';
 import { Course } from '../course/entities/course.entity';
+import { Events } from '../events/entities/event.entity';
 
 @Injectable()
 export class StudentService {
@@ -20,6 +20,8 @@ export class StudentService {
     @InjectModel(Student.name) private studentModel: Model<Student>,
     private readonly cloudinaryService: CloudinaryService,
     @InjectModel(Course.name) private readonly courseModel: Model<Course>,
+    @InjectModel(Events.name) private readonly eventModel: Model<Events>
+
   ) {}
 
   async enrollInCourse(studentId: string, courseId: string): Promise<Student> {
@@ -79,6 +81,31 @@ export class StudentService {
     }
   }
   //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+  async enrollInEvent(studentId: string, eventId: string): Promise<Events> {
+    try {
+      // Find the event
+      const event = await this.eventModel.findById(eventId).exec();
+      if (!event) {
+        throw new NotFoundException(`Event with ID ${eventId} not found`);
+      }
+
+      // Check if student is already enrolled
+      if (event.enrolledStudents.includes(studentId)) {
+        throw new Error(`Student with ID ${studentId} is already enrolled in this event`);
+      }
+
+      // Enroll the student
+      event.enrolledStudents.push(studentId);
+      await event.save();
+
+      return event;
+    } catch (error) {
+      console.error('Error enrolling in event:', error.message || error);
+      throw new InternalServerErrorException('Failed to enroll in event');
+    }
+  }
+  //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
   async findAll(
     page: number = 1,
     limit: number = 10,

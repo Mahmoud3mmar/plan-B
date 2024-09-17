@@ -1,14 +1,15 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, BadRequestException, UploadedFile, UseInterceptors, Request, NotFoundException, Put } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, BadRequestException, UploadedFile, UseInterceptors, Request, NotFoundException, Put, HttpCode, HttpStatus } from '@nestjs/common';
 import { StudentService } from './student.service';
 import { CreateStudentDto } from './dto/create-student.dto';
 import { UpdateStudentDto } from './dto/update.student.dto';
-import { ApiConsumes, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { ApiConsumes, ApiOperation, ApiParam, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { AccessTokenGuard } from '../auth/guards/accessToken.guard';
 import { Student } from './entities/student.entity';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { RolesGuard } from '../auth/guards/role.guards';
 import { Roles } from '../auth/Roles.decorator';
 import { Role } from '../user/common utils/Role.enum';
+import { Events } from '../events/entities/event.entity';
 
 
 @ApiTags('student')
@@ -16,7 +17,7 @@ import { Role } from '../user/common utils/Role.enum';
 export class StudentController {
   constructor(private readonly studentService: StudentService) {}
 
-  @Post('course/enroll/:courseId')
+  @Post('enroll/course/:courseId')
   @UseGuards(AccessTokenGuard,RolesGuard)
   @Roles(Role.STUDENT)   
   @ApiOperation({
@@ -47,8 +48,55 @@ export class StudentController {
     }
     return this.studentService.enrollInCourse(studentId, courseId);
   }
- 
- 
+ ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+  
+ @Post('enroll/event/:eventId')
+ @UseGuards(AccessTokenGuard)
+ @HttpCode(HttpStatus.OK)
+ @ApiOperation({ summary: 'Enroll a student in an event' })
+ @ApiParam({
+   name: 'studentId',
+   description: 'The ID of the student enrolling in the event',
+   type: String,
+ })
+ @ApiParam({
+   name: 'eventId',
+   description: 'The ID of the event to enroll in',
+   type: String,
+ })
+ @ApiResponse({
+   status: 200,
+   description: 'Successfully enrolled in the event',
+   type: Events,
+ })
+ @ApiResponse({
+   status: 400,
+   description: 'Bad Request - Invalid student ID or event ID, or student already enrolled',
+ })
+ @ApiResponse({
+   status: 404,
+   description: 'Not Found - Event or Student not found',
+ })
+ @ApiResponse({
+   status: 500,
+   description: 'Internal Server Error - Failed to enroll in the event',
+ })
+ async enrollInEvent(
+  @Request() req: any,
+  @Param('eventId') eventId: string
+ ) {
+   try {
+    const studentId = req.user.sub; // Extract user ID from the JWT token
+    // Check if the user exists
+    if (!studentId) {
+      throw new NotFoundException(`User with ID ${studentId} not found`);
+    }
+     return await this.studentService.enrollInEvent(studentId, eventId);
+   } catch (error) {
+     // Handle specific exceptions if needed
+     throw new BadRequestException(error.message);
+   }
+ }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   @Put()
   @UseGuards(AccessTokenGuard)
