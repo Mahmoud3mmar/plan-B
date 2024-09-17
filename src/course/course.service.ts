@@ -18,11 +18,11 @@ import { CloudinaryService } from '../cloudinary/cloudinary.service';
 import { GetCoursesDto } from './dto/get.courses.dto';
 import { Instructor } from '../instructor/entities/instructor.entity';
 import { CategoryService } from '../category/category.service';
-import { Video } from '../vedio/entities/vedio.entity';
 import { CourseCurriculmService } from '../course-curriculm/course-curriculm.service';
 import { Faq } from '../faqs/entities/faq.entity';
 import { CourseCurriculum } from '../course-curriculm/entities/course-curriculm.entity';
 import { Review } from '../review/entities/review.entity';
+import { Video } from '../vedio/entities/vedio.entity';
 
 @Injectable()
 export class CourseService {

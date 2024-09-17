@@ -7,10 +7,10 @@ import { Course, CourseSchema } from './entities/course.entity';
 import { CloudinaryService } from '../cloudinary/cloudinary.service';
 import { Instructor, InstructorSchema } from '../instructor/entities/instructor.entity';
 import { CourseCurriculum, CourseCurriculumSchema } from '../course-curriculm/entities/course-curriculm.entity';
-import { Video, VideoSchema } from '../vedio/entities/vedio.entity';
 import { Faq, FaqSchema } from '../faqs/entities/faq.entity';
 import { Review, ReviewSchema } from '../review/entities/review.entity';
 import { Category, CategorySchema } from '../category/entities/category.entity';
+import { Video, VideoSchema } from '../vedio/entities/vedio.entity';
 
 @Module({
   imports: [
