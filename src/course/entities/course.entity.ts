@@ -5,6 +5,7 @@ import { Faq } from '../../faqs/entities/faq.entity';
 import { Instructor } from '../../instructor/entities/instructor.entity';
 import { Review } from '../../review/entities/review.entity';
 import { Level } from '../utils/levels.enum';
+import { Category } from '../../category/entities/category.entity';
 
 
 @Schema({ timestamps: true })
@@ -49,15 +50,16 @@ export class Course extends Document {
   @Prop({ type: [{ type: MongooseSchema.Types.ObjectId, ref: 'Review' }], default: [] })
   reviews: Review[];
 
-
+  @Prop()
+  videos: [{ type: MongooseSchema.Types.ObjectId, ref: 'Video' },{ default: [] }];
   @Prop({type: Number, required: true })
   price: number; // Decimal value, represented as a number
 
   @Prop({ type: Boolean, default: false })
   isPaid: boolean; // Indicates if the course is paid or free
 
-  @Prop({ required: true })
-  category: string; // Category of the course
+  @Prop({ type: MongooseSchema.Types.ObjectId, ref: 'Category'}) // Reference to Category
+  category: Category;
   
   @Prop({ type: Number, default: 0 })
   rating: number; // Rating calculated from reviews
