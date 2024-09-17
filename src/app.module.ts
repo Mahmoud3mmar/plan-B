@@ -22,7 +22,7 @@ import { EventsModule } from './events/events.module';
 import { CategoryModule } from './category/category.module';
 
 @Module({
-  imports: [AuthModule, UserModule, CourseModule, FaqsModule, InstructorModule, ReviewModule, SummertrainingModule,
+  imports: [AuthModule, UserModule, CourseModule, FaqsModule, InstructorModule, ReviewModule, SummertrainingModule,VedioModule,
     ConfigModule.forRoot({
     isGlobal: true,
   }),
