@@ -1,0 +1,1 @@
+class VideoDurationDetectionError extends Error {}
