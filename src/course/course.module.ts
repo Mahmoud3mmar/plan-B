@@ -1,28 +1,31 @@
 import { Module } from '@nestjs/common';
+import { MongooseModule } from '@nestjs/mongoose';
 import { CourseService } from './course.service';
 import { CourseController } from './course.controller';
+import { CategoryModule } from '../category/category.module'; // Import CategoryModule
 import { Course, CourseSchema } from './entities/course.entity';
-import { MongooseModule } from '@nestjs/mongoose';
-import { User, UserSchema } from '../user/entities/user.entity';
 import { CloudinaryService } from '../cloudinary/cloudinary.service';
-import { CourseCurriculum ,CourseCurriculumSchema} from '../course-curriculm/entities/course-curriculm.entity';
-import { Faq, FaqSchema } from '../faqs/entities/faq.entity';
 import { Instructor, InstructorSchema } from '../instructor/entities/instructor.entity';
+import { CourseCurriculum, CourseCurriculumSchema } from '../course-curriculm/entities/course-curriculm.entity';
+import { Video, VideoSchema } from '../vedio/entities/vedio.entity';
+import { Faq, FaqSchema } from '../faqs/entities/faq.entity';
 import { Review, ReviewSchema } from '../review/entities/review.entity';
+import { Category, CategorySchema } from '../category/entities/category.entity';
 
 @Module({
   imports: [
-    MongooseModule.forFeature([
-      { name: Course.name, schema: CourseSchema },
+    MongooseModule.forFeature([ { name: Course.name, schema: CourseSchema },
+      { name: Video.name, schema: VideoSchema },
       { name: CourseCurriculum.name, schema: CourseCurriculumSchema },
       { name: Faq.name, schema: FaqSchema },
-      { name: User.name, schema: UserSchema },
-      { name: Instructor.name, schema: InstructorSchema },
       { name: Review.name, schema: ReviewSchema },
-    ]),
-  ],
+      { name: Category.name, schema: CategorySchema },
+      { name: Instructor.name, schema: InstructorSchema },
 
-  controllers: [CourseController],
+    ]),
+    CategoryModule, // Import CategoryModule here
+  ],
   providers: [CourseService,CloudinaryService],
+  controllers: [CourseController],
 })
 export class CourseModule {}

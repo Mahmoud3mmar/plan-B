@@ -1,8 +1,8 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, ParseIntPipe, Query, Put, UseGuards, UseInterceptors, UploadedFile, BadRequestException, DefaultValuePipe, HttpStatus, HttpCode } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, ParseIntPipe, Query, Put, UseGuards, UseInterceptors, UploadedFile, BadRequestException, DefaultValuePipe, HttpStatus, HttpCode, NotFoundException, InternalServerErrorException } from '@nestjs/common';
 import { CourseService } from './course.service';
 import { CreateCourseDto } from './dto/create.course.dto';
 import { UpdateCourseDto } from './dto/update.course.dto';
-import { ApiBody, ApiOperation, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { ApiBody, ApiOperation, ApiParam, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { Course } from './entities/course.entity';
 import { Roles } from '../auth/Roles.decorator';
 import { Role } from '../user/common utils/Role.enum';
@@ -148,24 +148,46 @@ export class CourseController {
 
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-  @Delete(':id')
-  @ApiOperation({ summary: 'Delete a course by its ID' })
-  @ApiResponse({
-    status: 204,
-    description: 'The course has been successfully deleted.',
-  })
-  @ApiResponse({
-    status: 404,
-    description: 'Course not found.',
-  })
-  async remove(@Param('id') id: string): Promise<void> {
-    return this.courseService.remove(id);
+ 
+@Delete(':id')
+@HttpCode(HttpStatus.NO_CONTENT)
+@ApiOperation({
+  summary: 'Delete a course',
+  description: 'Deletes a course by its ID along with related entities such as videos, curriculums, FAQs, and reviews.',
+})
+@ApiParam({
+  name: 'id',
+  type: String,
+  description: 'ID of the course to delete',
+})
+@ApiResponse({
+  status: HttpStatus.NO_CONTENT,
+  description: 'Course successfully deleted',
+})
+@ApiResponse({
+  status: HttpStatus.NOT_FOUND,
+  description: 'Course not found',
+})
+@ApiResponse({
+  status: HttpStatus.INTERNAL_SERVER_ERROR,
+  description: 'Failed to delete the course',
+})
+async deleteCourse(@Param('id') courseId: string): Promise<void> {
+  try {
+    await this.courseService.deleteCourse(courseId);
+  } catch (error) {
+    if (error instanceof NotFoundException) {
+      throw new NotFoundException(`Course with ID ${courseId} not found`);
+    } else {
+      throw new InternalServerErrorException('Failed to delete course');
+    }
   }
-
+}
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 @Get()
+@UseGuards(AccessTokenGuard)
   @ApiResponse({
     status: 200,
     description: 'Successfully retrieved courses with pagination and sorting',
@@ -224,5 +246,16 @@ export class CourseController {
       page,
       limit,
     };
+  }
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+  @Patch(':courseId')
+  @UseGuards(AccessTokenGuard)
+  async assignInstructor(
+    @Param('courseId') courseId: string,
+    @Body('instructorId') instructorId: string,
+  ) {
+    return this.courseService.assignInstructorToCourse(courseId, instructorId);
   }
 }
