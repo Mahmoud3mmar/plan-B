@@ -35,7 +35,7 @@ export class InstructorController {
 
 
   @Get()
-  @UseGuards(AccessTokenGuard)
+  // @UseGuards(AccessTokenGuard)
   @ApiOperation({ summary: 'Retrieve a list of instructors with pagination and sorting' })
   @ApiResponse({
     status: 200,
@@ -60,7 +60,7 @@ export class InstructorController {
 
   //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   @Get(':id')
-  @UseGuards(AccessTokenGuard)
+  // @UseGuards(AccessTokenGuard)
   @ApiOperation({ summary: 'Get a specific instructor by ID' })
   @ApiResponse({
     status: 200,

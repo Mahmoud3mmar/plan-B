@@ -13,7 +13,7 @@ export class FaqsController {
   constructor(private readonly FaqsService: FaqsService) {}
 
   @Post(':courseId')
-  @UseGuards(AccessTokenGuard)
+  // @UseGuards(AccessTokenGuard)
 
   @ApiOperation({ summary: 'Create a new FAQ' })
   @ApiParam({
@@ -29,7 +29,7 @@ export class FaqsController {
   }
   ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   @Get()
-  @UseGuards(AccessTokenGuard)
+  // @UseGuards(AccessTokenGuard)
 
   @ApiOperation({ summary: 'Retrieve all FAQs with pagination' })
   @ApiResponse({ status: 200, description: 'List of FAQs with pagination.', type: [Faq] })
@@ -42,7 +42,7 @@ export class FaqsController {
   }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   @Get(':id')
-  @UseGuards(AccessTokenGuard)
+  // @UseGuards(AccessTokenGuard)
   @ApiOperation({ summary: 'Retrieve a specific FAQ by ID' })
   @ApiResponse({ status: 200, description: 'The FAQ details.', type: Faq })
   @ApiResponse({ status: 404, description: 'FAQ not found.' })
@@ -51,7 +51,7 @@ export class FaqsController {
   }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   @Put(':id')
-  @UseGuards(AccessTokenGuard)
+  // @UseGuards(AccessTokenGuard)
   @ApiOperation({ summary: 'Update an existing FAQ by ID' })
   @ApiResponse({ status: 200, description: 'The updated FAQ.', type: Faq })
   @ApiResponse({ status: 404, description: 'FAQ not found.' })
@@ -64,7 +64,7 @@ export class FaqsController {
   }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   @Delete(':faqId')
-  @UseGuards(AccessTokenGuard)
+  // @UseGuards(AccessTokenGuard)
   @ApiOperation({ summary: 'Delete an FAQ by ID' })
   @ApiResponse({ status: 204, description: 'The FAQ has been successfully deleted.' })
   @ApiResponse({ status: 404, description: 'FAQ not found.' })

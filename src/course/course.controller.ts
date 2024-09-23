@@ -94,7 +94,7 @@ export class CourseController {
   }
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   @Put(':CourseId')
-  @UseGuards(AccessTokenGuard)
+  // @UseGuards(AccessTokenGuard)
 
   // @UseInterceptors(FileInterceptor('image'))
   @ApiOperation({ summary: 'Update a course by ID' })
@@ -124,7 +124,7 @@ export class CourseController {
   }
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   @Post('upload/image')
-  @UseGuards(AccessTokenGuard) // Add this line if authentication is needed
+  // @UseGuards(AccessTokenGuard) // Add this line if authentication is needed
   @UseInterceptors(FileInterceptor('image'))
   @ApiOperation({ summary: 'Upload an image for a course' })
   @ApiResponse({
@@ -187,7 +187,7 @@ async deleteCourse(@Param('id') courseId: string): Promise<void> {
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 @Get()
-@UseGuards(AccessTokenGuard)
+// @UseGuards(AccessTokenGuard)
   @ApiResponse({
     status: 200,
     description: 'Successfully retrieved courses with pagination and sorting',
@@ -251,7 +251,7 @@ async deleteCourse(@Param('id') courseId: string): Promise<void> {
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
   @Patch(':courseId')
-  @UseGuards(AccessTokenGuard)
+  // @UseGuards(AccessTokenGuard)
   async assignInstructor(
     @Param('courseId') courseId: string,
     @Body('instructorId') instructorId: string,
