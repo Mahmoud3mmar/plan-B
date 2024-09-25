@@ -14,9 +14,6 @@ export class SummerTraining extends Document {
   @Prop({ required: true })
   image: string; // URL or path to the image
 
-  @Prop({ type: Types.ObjectId, ref: Instructor.name, required: true })
-  instructor: Types.ObjectId; // Reference to Instructor document
-
   @Prop({ required: true })
   duration: string; // Duration of the training (e.g., '6 weeks', '3 months')
 
@@ -31,11 +28,8 @@ export class SummerTraining extends Document {
   @Prop({ type: String, enum: Level, default: Level.AllLevels })
   level: Level; // Level of the training (e.g., 'Beginner', 'Intermediate', 'Advanced')
   
-  @Prop({ type: String, default: null })
-  noOfLessons?: string; // Optional field for the number of lessons
 
-  @Prop({ type: String})
-  category: string; // Reference to Category document
+
 
   @Prop({ required: true })
   type: 'online' | 'offline'; // Training mode (either 'online' or 'offline')
