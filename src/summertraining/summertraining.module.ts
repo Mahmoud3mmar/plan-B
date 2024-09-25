@@ -3,7 +3,7 @@ import { SummertrainingService } from './summertraining.service';
 import { SummertrainingController } from './summertraining.controller';
 import { MongooseModule } from '@nestjs/mongoose';
 import { SummerTraining, SummerTrainingSchema } from './entities/summertraining.entity';
-import { CloudinaryService } from 'src/cloudinary/cloudinary.service';
+import { CloudinaryService } from '../cloudinary/cloudinary.service';
 
 @Module({
   imports: [

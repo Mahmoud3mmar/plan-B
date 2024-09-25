@@ -1,4 +1,3 @@
-// src/summer-training/dto/get-summer-training.dto.ts
 import { IsOptional, IsEnum, IsString } from 'class-validator';
 import { Level } from '../../course/utils/levels.enum';
 
