@@ -95,24 +95,28 @@ export class CourseService {
     }
   }
   async uploadCourseImage(
-    image: Express.Multer.File,
+    courseId: string,
+    image: Express.Multer.File
   ): Promise<{ message: string; imageUrl: string }> {
     try {
       const folderName = 'courseImages'; // Adjust folder name as needed
-      const uploadResult = await this.CloudinaryService.uploadImage(
-        image,
-        folderName,
-      );
+      const uploadResult = await this.CloudinaryService.uploadImage(image, folderName);
+
+      // Find and update the course document with the new image URL
+      const updatedCourse = await this.courseModel.findById(courseId);
+      if (!updatedCourse) {
+        throw new NotFoundException(`Course with ID ${courseId} not found`);
+      }
+
+      updatedCourse.imageUrl = uploadResult.secure_url; // Update with the returned URL
+      await updatedCourse.save();
 
       return {
-        message: 'Image uploaded successfully',
-        imageUrl: uploadResult.secure_url, // Or whatever property your service returns
+        message: 'Image uploaded and course updated successfully',
+        imageUrl: uploadResult.secure_url,
       };
     } catch (error) {
-      throw new InternalServerErrorException(
-        'Failed to upload image',
-        error.message,
-      );
+      throw new InternalServerErrorException('Failed to upload image', error.message);
     }
   }
 

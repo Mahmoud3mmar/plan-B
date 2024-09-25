@@ -123,27 +123,22 @@ export class CourseController {
     return this.courseService.updateCourse(CourseId, updateCourseDto);
   }
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-  @Post('upload/image')
+  @Post('upload/image/:courseId')
   // @UseGuards(AccessTokenGuard) // Add this line if authentication is needed
   @UseInterceptors(FileInterceptor('image'))
-  @ApiOperation({ summary: 'Upload an image for a course' })
-  @ApiResponse({
-    status: 201,
-    description: 'The image has been successfully uploaded.',
-    type: String,
-  })
-  @ApiResponse({
-    status: 400,
-    description: 'Bad Request. The request payload is invalid.',
-  })
   async uploadCourseImage(
-    @UploadedFile() image: Express.Multer.File,
+    @Param('courseId') courseId: string,
+    @UploadedFile() image: Express.Multer.File
   ): Promise<any> {
     if (!image) {
       throw new BadRequestException('No image file provided');
     }
 
-    return await this.courseService.uploadCourseImage(image);
+    try {
+      return await this.courseService.uploadCourseImage(courseId, image);
+    } catch (error) {
+      throw new InternalServerErrorException('Failed to upload image');
+    }
   }
 
 
