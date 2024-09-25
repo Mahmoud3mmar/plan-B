@@ -1,47 +1,79 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Query } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Query, UseInterceptors, UploadedFile, Put } from '@nestjs/common';
 import { SummertrainingService } from './summertraining.service';
-import { UpdateSummertrainingDto } from './dto/update.summertraining.dto';
-import { ApiOperation, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { ApiBody, ApiConsumes, ApiOperation, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { CreateSummerTrainingDto } from './dto/create.summertraining.dto';
 import { SummerTraining } from './entities/summertraining.entity';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { GetSummerTrainingDto } from './dto/get.summer.training.dto';
+import { UpdateSummerTrainingDto } from './dto/update.summertraining.dto';
 
 @ApiTags('summertraining')
-@Controller('summertraining')
+@Controller('summer/training')
 export class SummertrainingController {
   constructor(private readonly summertrainingService: SummertrainingService) {}
 
   @Post()
-  @ApiOperation({ summary: 'Create a new summer training' })
-  @ApiResponse({ status: 201, description: 'The summer training has been successfully created.', type: SummerTraining })
-  @ApiResponse({ status: 400, description: 'Bad Request' })
-  async create(@Body() createDto: CreateSummerTrainingDto): Promise<SummerTraining> {
-    return this.summertrainingService.create(createDto);
+  @ApiConsumes('multipart/form-data')
+  @ApiBody({
+    description: 'Create a new summer training',
+    type: CreateSummerTrainingDto,
+  })
+  @UseInterceptors(FileInterceptor('image')) // Use Cloudinary Multer
+  async create(
+    @Body() createSummerTrainingDto: CreateSummerTrainingDto,
+    @UploadedFile() image: Express.Multer.File, // Handle uploaded file
+  ) {
+    // if (!file) {
+    //   throw new BadRequestException('Image file is required');
+    // }
+
+    // // Upload the file to Cloudinary
+    // const uploadResult = await this.cloudinaryService.uploadImage(file);
+    // if (!uploadResult || !uploadResult.secure_url) {
+    //   throw new BadRequestException('Image upload failed');
+    // }
+
+    // Call the service to create summer training with Cloudinary image URL
+    return await this.summertrainingService.create(createSummerTrainingDto, image);
   }
 
-  @Get()
-  @ApiOperation({ summary: 'Retrieve all summer trainings with pagination' })
-  @ApiQuery({ name: 'page', type: Number, description: 'Page number for pagination', required: false })
-  @ApiQuery({ name: 'limit', type: Number, description: 'Number of items per page', required: false })
-  @ApiResponse({ status: 200, description: 'List of summer trainings with pagination.', type: [SummerTraining] })
-  @ApiResponse({ status: 404, description: 'No summer trainings found.' })
-  async findAll(@Query('page') page: number = 1, @Query('limit') limit: number = 10): Promise<{ data: SummerTraining[], total: number }> {
-    return this.summertrainingService.findAll(page, limit);
+  @Get('sorted')
+  async getSummerTraining(
+    @Query() query: GetSummerTrainingDto,
+  ) {
+    return this.summertrainingService.getAllSummerTraining(query);
   }
 
   @Get(':id')
-  @ApiOperation({ summary: 'Retrieve a specific summer training by ID' })
-  @ApiResponse({ status: 200, description: 'The summer training details.', type: SummerTraining })
-  @ApiResponse({ status: 404, description: 'Summer training not found.' })
-  async findOne(@Param('id') id: string): Promise<SummerTraining> {
-    return this.summertrainingService.findOne(id);
+  @ApiOperation({ summary: 'Get a summer training by ID' })
+  @ApiResponse({
+    status: 200,
+    description: 'The summer training record',
+    type: SummerTraining,
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'Summer training not found',
+  })
+  async getSummerTrainingById(@Param('id') id: string): Promise<SummerTraining> {
+    return this.summertrainingService.getSummerTrainingById(id);
   }
-
-  @Patch(':id')
-  @ApiOperation({ summary: 'Update a specific summer training by ID' })
-  @ApiResponse({ status: 200, description: 'The updated summer training details.', type: SummerTraining })
-  @ApiResponse({ status: 404, description: 'Summer training not found.' })
-  async update(@Param('id') id: string, @Body() updateDto: UpdateSummertrainingDto): Promise<SummerTraining> {
-    return this.summertrainingService.update(id, updateDto);
+  @Put(':id')
+  @ApiOperation({ summary: 'Update a summer training by ID' })
+  @ApiResponse({
+    status: 200,
+    description: 'The updated summer training record',
+    type: SummerTraining,
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'Summer training not found',
+  })
+  async updateSummerTraining(
+    @Param('id') id: string,
+    @Body() updateDto: UpdateSummerTrainingDto,
+  ): Promise<SummerTraining> {
+    return this.summertrainingService.updateSummerTraining(id, updateDto);
   }
 
   @Delete(':id')

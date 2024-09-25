@@ -3,6 +3,7 @@ import { SummertrainingService } from './summertraining.service';
 import { SummertrainingController } from './summertraining.controller';
 import { MongooseModule } from '@nestjs/mongoose';
 import { SummerTraining, SummerTrainingSchema } from './entities/summertraining.entity';
+import { CloudinaryService } from 'src/cloudinary/cloudinary.service';
 
 @Module({
   imports: [
@@ -12,6 +13,6 @@ import { SummerTraining, SummerTrainingSchema } from './entities/summertraining.
     ]),
   ],
   controllers: [SummertrainingController],
-  providers: [SummertrainingService],
+  providers: [SummertrainingService,CloudinaryService],
 })
 export class SummertrainingModule {}

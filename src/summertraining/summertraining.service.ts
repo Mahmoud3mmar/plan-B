@@ -1,46 +1,115 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
-import { UpdateSummertrainingDto } from './dto/update.summertraining.dto';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { CreateSummerTrainingDto } from './dto/create.summertraining.dto';
 import { SummerTraining } from './entities/summertraining.entity';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
+import { Instructor } from '../instructor/entities/instructor.entity';
+import { CloudinaryService } from '../cloudinary/cloudinary.service';
+import { GetSummerTrainingDto } from './dto/get.summer.training.dto';
+import { UpdateSummerTrainingDto } from './dto/update.summertraining.dto';
 
 @Injectable()
 export class SummertrainingService {
   constructor(
     @InjectModel(SummerTraining.name) private readonly summerTrainingModel: Model<SummerTraining>,
+
+
+    private readonly cloudinaryService: CloudinaryService,
+
   ) {}
 
-  async create(createDto: CreateSummerTrainingDto): Promise<SummerTraining> {
-    const createdTraining = new this.summerTrainingModel(createDto);
-    return createdTraining.save();
+  // Create summer training
+  async create(
+    createSummerTrainingDto: CreateSummerTrainingDto,
+    file: Express.Multer.File, // Image file
+  ): Promise<SummerTraining> {
+    // Check if the file exists
+    if (!file) {
+      throw new BadRequestException('Image file is required');
+    }
+
+    // Upload the file to Cloudinary
+    const foldername='SummerTraining'
+    const uploadResult = await this.cloudinaryService.uploadImage(file,foldername);
+    if (!uploadResult || !uploadResult.secure_url) {
+      throw new BadRequestException('Image upload failed');
+    }
+
+
+    // Create a new SummerTraining document
+    const newSummerTraining = new this.summerTrainingModel({
+      ...createSummerTrainingDto,
+      image: uploadResult.secure_url, // Use Cloudinary image URL
+    });
+
+    // Save the new summer training in the database
+    return await newSummerTraining.save();
   }
 
-  async findAll(page: number = 1, limit: number = 10): Promise<{ data: SummerTraining[], total: number }> {
-    const skip = (page - 1) * limit;
-    const [data, total] = await Promise.all([
-      this.summerTrainingModel.find().skip(skip).limit(limit).exec(),
-      this.summerTrainingModel.countDocuments().exec(),
+
+  async getAllSummerTraining(
+    query: GetSummerTrainingDto,
+  ): Promise<any> {
+    const {
+      level,
+      type,
+      page = '1',
+      limit = '10',
+    } = query;
+
+    // Calculate pagination parameters
+    const pageNumber = parseInt(page, 10);
+    const pageSize = parseInt(limit, 10);
+    const skip = (pageNumber - 1) * pageSize;
+
+    // Build the filter query
+    const filter: any = {};
+    if (level) {
+      filter.level = level;
+    }
+    if (type) {
+      filter.type = type;
+    }
+
+    // Fetch paginated and filtered results
+    const [results, total] = await Promise.all([
+      this.summerTrainingModel.find(filter)
+        .skip(skip)
+        .limit(pageSize)
+        .exec(),
+      this.summerTrainingModel.countDocuments(filter).exec(),
     ]);
-    return { data, total };
+
+    return {
+      data: results,
+      total,
+      totalPages: Math.ceil(total / pageSize),
+      page: pageNumber,
+      limit: pageSize,
+    };
   }
 
-  async findOne(id: string): Promise<SummerTraining> {
+
+  async getSummerTrainingById(id: string): Promise<SummerTraining> {
     const training = await this.summerTrainingModel.findById(id).exec();
     if (!training) {
-      throw new NotFoundException(`SummerTraining with ID ${id} not found`);
+      throw new NotFoundException(`Summer training with ID ${id} not found`);
     }
     return training;
   }
 
-  async update(id: string, updateDto: UpdateSummertrainingDto): Promise<SummerTraining> {
-    const updatedTraining = await this.summerTrainingModel.findByIdAndUpdate(id, updateDto, { new: true }).exec();
+  async updateSummerTraining(id: string, updateDto: UpdateSummerTrainingDto): Promise<SummerTraining> {
+    const updatedTraining = await this.summerTrainingModel.findByIdAndUpdate(id, updateDto, {
+      new: true, // Return the updated document
+      runValidators: true, // Run validation on update
+    }).exec();
+
     if (!updatedTraining) {
-      throw new NotFoundException(`SummerTraining with ID ${id} not found`);
+      throw new NotFoundException(`Summer training with ID ${id} not found`);
     }
+
     return updatedTraining;
   }
-
   async remove(id: string): Promise<void> {
     const result = await this.summerTrainingModel.findByIdAndDelete(id).exec();
     if (!result) {
