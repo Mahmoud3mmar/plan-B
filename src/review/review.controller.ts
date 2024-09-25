@@ -121,7 +121,7 @@ async getReviewsByCourse(
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   @Post(':courseId')
-  // @UseGuards(AccessTokenGuard, RolesGuard)
+  @UseGuards(AccessTokenGuard, RolesGuard)
   @Roles(Role.STUDENT)
   @ApiOperation({ summary: 'Create a review for a course' })
   @ApiBody({
