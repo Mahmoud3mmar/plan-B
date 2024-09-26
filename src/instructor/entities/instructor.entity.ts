@@ -1,6 +1,7 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Types } from 'mongoose';
 import { User } from '../../user/entities/user.entity';
+import { SubTrainingEntity } from '../../subtraining/entities/subtraining.entity';
 
 class SocialMediaLink {
   @Prop({ required: true })
@@ -33,6 +34,9 @@ export class Instructor extends User {
 
   @Prop({ type: [Types.ObjectId], ref: 'User' ,default:[] })
   students: Types.ObjectId[];
+
+  @Prop({ type: [Types.ObjectId], ref: SubTrainingEntity.name })
+  subTrainings: Types.ObjectId[]; // List of SubTrainingEntities taught by this instructor
 }
 
 export const InstructorSchema = SchemaFactory.createForClass(Instructor);
