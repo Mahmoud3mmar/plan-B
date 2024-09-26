@@ -20,6 +20,7 @@ import { APP_PIPE } from '@nestjs/core';
 import { VedioModule } from './vedio/vedio.module';
 import { EventsModule } from './events/events.module';
 import { CategoryModule } from './category/category.module';
+import { SubtrainingModule } from './subtraining/subtraining.module';
 
 @Module({
   imports: [AuthModule, UserModule, CourseModule, FaqsModule, InstructorModule, ReviewModule, SummertrainingModule,VedioModule,
@@ -34,6 +35,7 @@ import { CategoryModule } from './category/category.module';
   VedioModule,
   EventsModule,
   CategoryModule,
+  SubtrainingModule,
 ],
   controllers: [AppController],
   providers: [AppService
