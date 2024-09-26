@@ -5,7 +5,7 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { Instructor, InstructorSchema } from './entities/instructor.entity';
 import { User, UserSchema } from '../user/entities/user.entity';
 import { CloudinaryService } from '../cloudinary/cloudinary.service';
-import { SubTrainingEntity, SubTrainingSchema } from 'src/subtraining/entities/subtraining.entity';
+import { SubTrainingEntity, SubTrainingSchema } from '../subtraining/entities/subtraining.entity';
 
 @Module({
   imports: [
