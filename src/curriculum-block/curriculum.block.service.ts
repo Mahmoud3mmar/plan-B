@@ -4,9 +4,9 @@ import { UpdateCurriculumBlockDto } from './dto/update-curriculum-block.dto';
 import { InjectModel } from '@nestjs/mongoose';
 import { CurriculumBlock } from './entities/curriculum.block.entity';
 import { Model } from 'mongoose';
-import { CourseCurriculum } from 'src/course-curriculm/entities/course-curriculm.entity';
-import { Course } from 'src/course/entities/course.entity';
-import { Video } from 'src/vedio/entities/vedio.entity';
+import { CourseCurriculum } from '../course-curriculm/entities/course-curriculm.entity';
+import { Course } from '../course/entities/course.entity';
+import { Video } from '../vedio/entities/vedio.entity';
 
 @Injectable()
 export class CurriculumBlockService {
