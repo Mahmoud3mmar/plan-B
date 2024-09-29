@@ -11,6 +11,7 @@ import { Faq, FaqSchema } from '../faqs/entities/faq.entity';
 import { Review, ReviewSchema } from '../review/entities/review.entity';
 import { Category, CategorySchema } from '../category/entities/category.entity';
 import { Video, VideoSchema } from '../vedio/entities/vedio.entity';
+import { CurriculumBlock, CurriculumBlockSchema } from 'src/curriculum-block/entities/curriculum.block.entity';
 
 @Module({
   imports: [
@@ -21,6 +22,9 @@ import { Video, VideoSchema } from '../vedio/entities/vedio.entity';
       { name: Review.name, schema: ReviewSchema },
       { name: Category.name, schema: CategorySchema },
       { name: Instructor.name, schema: InstructorSchema },
+      { name: CourseCurriculum.name, schema: CourseCurriculumSchema },
+      { name: CurriculumBlock.name, schema: CurriculumBlockSchema },
+
 
     ]),
     CategoryModule, // Import CategoryModule here

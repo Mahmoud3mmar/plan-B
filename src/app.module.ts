@@ -14,13 +14,12 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { CourseCurriculmModule } from './course-curriculm/course-curriculm.module';
 import { StudentModule } from './student/student.module';
 import { TokenBlacklistModule } from './token-blacklist/token-blacklist.module';
-import { User, UserSchema } from './user/entities/user.entity';
-import { Instructor, InstructorSchema } from './instructor/entities/instructor.entity';
-import { APP_PIPE } from '@nestjs/core';
+
 import { VedioModule } from './vedio/vedio.module';
 import { EventsModule } from './events/events.module';
 import { CategoryModule } from './category/category.module';
 import { SubtrainingModule } from './subtraining/subtraining.module';
+import { CurriculumBlockModule } from './curriculum-block/curriculum.block.module';
 
 @Module({
   imports: [AuthModule, UserModule, CourseModule, FaqsModule, InstructorModule, ReviewModule, SummertrainingModule,VedioModule,
@@ -34,8 +33,9 @@ import { SubtrainingModule } from './subtraining/subtraining.module';
   TokenBlacklistModule,
   VedioModule,
   EventsModule,
-  CategoryModule,
+  CategoryModule, 
   SubtrainingModule,
+  CurriculumBlockModule,
 ],
   controllers: [AppController],
   providers: [AppService

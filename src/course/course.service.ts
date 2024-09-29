@@ -32,6 +32,8 @@ export class CourseService {
     @InjectModel(CourseCurriculum.name) private readonly courseCurriculumModel: Model<CourseCurriculum>,
     @InjectModel(Faq.name) private readonly faqModel: Model<Faq>,
     @InjectModel(Review.name) private readonly reviewModel: Model<Review>,
+    @InjectModel(CourseCurriculum.name) private readonly CourseCurriculumModel: Model<CourseCurriculum>,
+
     // @InjectModel(User.name) private readonly userModel: Model<User>,
     private readonly CloudinaryService: CloudinaryService,
     private readonly CategoryService: CategoryService,
@@ -42,7 +44,7 @@ export class CourseService {
   async createCourse(createCourseDto: CreateCourseDto): Promise<Course> {
     try {
       const { categoryId, ...courseData } = createCourseDto;
-
+  
       // Check if category exists
       if (categoryId) {
         const categoryExists = await this.CategoryService.doesCategoryExist(categoryId);
@@ -50,22 +52,34 @@ export class CourseService {
           throw new NotFoundException('Category not found');
         }
       }
-
+  
       // Add the category ID to the course data
       const newCourseData = {
         ...courseData,
         category: categoryId ? new Types.ObjectId(categoryId) : null, // Ensure categoryId is of type ObjectId
         instructor: null, // Initialize with null to allow for later assignment
       };
-
+  
       // Create the course
       const createdCourse = await this.courseModel.create(newCourseData);
-
+  
+      // Create a new CourseCurriculum entity for the created course
+      const courseCurriculum = new this.CourseCurriculumModel({
+        CurriculumBlocks: [], // Initialize with an empty array for blocks
+      });
+  
+      // Save the CourseCurriculum
+      const createdCourseCurriculum = await courseCurriculum.save();
+  
+      // Update the created course with the curriculum ID by pushing to the array
+      createdCourse.courseCurriculum.push(createdCourseCurriculum); // Push the new curriculum ID into the array
+      await createdCourse.save();
+  
       // Update the category with the new course ID
       if (categoryId) {
         await this.CategoryService.addCourseToCategory(categoryId, createdCourse._id.toString());
       }
-
+  
       return createdCourse;
     } catch (error) {
       if (error.name === 'ValidationError') {
@@ -94,6 +108,7 @@ export class CourseService {
       }
     }
   }
+  
   async uploadCourseImage(
     courseId: string,
     image: Express.Multer.File
@@ -257,7 +272,7 @@ export class CourseService {
     const query: FilterQuery<Course> = this.buildQuery(filters);
     const skip = this.calculateSkip(page, limit);
     const sort = this.buildSort(sortOrder);
-
+  
     try {
       const [total, courses] = await Promise.all([
         this.courseModel.countDocuments(query).exec(),
@@ -266,27 +281,37 @@ export class CourseService {
           .skip(skip)
           .limit(limit)
           .sort(sort)
-          .populate('courseCurriculum')
+          .populate('courseCurriculum') // Populate the course curriculum
+          .populate({
+            path: 'courseCurriculum', // Ensure curriculum is populated
+            populate: {
+              path: 'CurriculumBlocks', // Populate curriculum blocks within the curriculum
+              model: 'CurriculumBlock', // Ensure this matches the name of your CurriculumBlock model
+              populate: {
+                path: 'videos', // Populate videos within the curriculum blocks
+                model: 'Video',
+              },
+            },
+          })
           .populate('instructor')
           .populate('faqs')
           .populate('reviews')
-          .populate({
-            path: 'videos', // This should match the field name in your Course schema
-            model: 'Video', // Ensure this matches the name of your Video model
-          })
           .populate('category') // Populate category field
-
           .exec(),
       ]);
-
+  
+     
+  
       const totalPages = Math.ceil(total / limit);
-
+  
       return { courses, total, totalPages };
     } catch (error) {
       console.error('Error fetching courses:', error);
       throw new InternalServerErrorException('Failed to fetch courses');
     }
   }
+  
+  
 
   /**
    * Build a query object based on provided filters.

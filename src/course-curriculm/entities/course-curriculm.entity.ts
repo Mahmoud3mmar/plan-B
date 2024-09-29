@@ -1,16 +1,11 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { Document } from 'mongoose';
+import { Document, Schema as MongooseSchema } from 'mongoose';
+import { CurriculumBlock } from '../../curriculum-block/entities/curriculum.block.entity';
 
-@Schema()
+@Schema({ timestamps: true })
 export class CourseCurriculum extends Document {
-  @Prop({ required: true })
-  title: string;
-
-  @Prop({ required: true })
-  numberOfLessons: number;
-
-  @Prop({ required: true })
-  duration: number; // Duration in hours
+  @Prop({ type: [{ type: MongooseSchema.Types.ObjectId, ref: 'CurriculumBlock' }] })
+  CurriculumBlocks: CurriculumBlock[]; // Array of blocks in the course curriculum
 }
 
 export const CourseCurriculumSchema = SchemaFactory.createForClass(CourseCurriculum);

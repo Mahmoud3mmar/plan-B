@@ -53,7 +53,7 @@ export class SubtrainingService {
     // Add to the instructor's sub-trainings array
     await this.InstructorModel.updateOne(
       { _id: createSubTrainingDto.instructor },
-      { $push: { subTrainings: savedSubTraining } }
+      { $push: { subTrainings: savedSubTraining  } }
     );
   
     return savedSubTraining;
