@@ -15,7 +15,7 @@ import { CreateVideoDto } from './dto/create.vedio.dto';
 import { UpdateVideoDto } from './dto/update.vedio.dto';
 import { CloudinaryService } from '../cloudinary/cloudinary.service';
 import { Course } from '../course/entities/course.entity';
-import { CurriculumBlock } from 'src/curriculum-block/entities/curriculum.block.entity';
+import { CurriculumBlock } from '../curriculum-block/entities/curriculum.block.entity';
 
 @Injectable()
 export class VedioService {

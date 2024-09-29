@@ -2,8 +2,8 @@ import { BadRequestException, Injectable, InternalServerErrorException, NotFound
 import { CourseCurriculum } from './entities/course-curriculm.entity';
 import { Model, Types } from 'mongoose';
 import { InjectModel } from '@nestjs/mongoose';
-import { CurriculumBlock } from 'src/curriculum-block/entities/curriculum.block.entity';
-import { Course } from 'src/course/entities/course.entity';
+import { CurriculumBlock } from '../curriculum-block/entities/curriculum.block.entity';
+import { Course } from '../course/entities/course.entity';
 import { GetCourseCurriculumDto } from './dto/get.course.curriculum.dto';
 
 @Injectable()
