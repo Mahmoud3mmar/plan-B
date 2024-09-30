@@ -296,5 +296,11 @@ private convertMinutesToDuration(minutes: number): string {
       throw new InternalServerErrorException('Failed to delete video');
     }
   }
-  
+  async getVideoById(id: string): Promise<Video> {
+    const video = await this.videoModel.findById(id).exec();
+    if (!video) {
+      throw new NotFoundException(`Video with ID ${id} not found`);
+    }
+    return video;
+  }
 }

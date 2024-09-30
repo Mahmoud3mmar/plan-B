@@ -73,4 +73,11 @@ export class VedioController {
     await this.vedioService.deleteVideo(videoId, courseId);
 
   }
+
+
+
+  @Get(':id')
+  async getVideo(@Param('id') id: string): Promise<Video> {
+    return this.vedioService.getVideoById(id);
+  }
 }
