@@ -140,10 +140,24 @@ export class CourseService {
   async findOne(id: string): Promise<Course> {
     const course = await this.courseModel
       .findById(id)
-      .populate('instructor')
+      .populate({
+        path: 'instructor',
+        select: '-password', // Exclude sensitive fields if necessary
+      })
       .populate('faqs')
       .populate('reviews')
+      .populate({
+        path: 'courseCurriculum', // Populate course curriculum
+        populate: {
+          path: 'CurriculumBlocks', // Populate the blocks within the curriculum
+          populate: {
+            path: 'videos', // Populate videos within each curriculum block
+          },
+        },
+      })
+      .populate('category') // Populate category details
       .exec();
+  
     if (!course) {
       throw new NotFoundException(`Course with ID ${id} not found`);
     }
