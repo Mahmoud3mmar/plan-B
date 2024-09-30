@@ -17,11 +17,7 @@ export class CourseCurriculmService {
     courseId: string,
     paginationDto: GetCourseCurriculumDto
   ): Promise<{ curriculum: CourseCurriculum; total: number; totalPages: number }> {
-    // Validate courseId
-    if (!Types.ObjectId.isValid(courseId)) {
-      throw new BadRequestException(`Invalid course ID format: ${courseId}`);
-    }
-
+   
     try {
       // Step 1: Find the course by ID to get the curriculum ID
       const course = await this.courseModel.findById(courseId).exec();
