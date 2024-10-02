@@ -16,28 +16,21 @@ export class EventsService {
 
     async createEvent(
       createEventDto: CreateEventDto,
-      speakerImageFile: Express.Multer.File,
       thumbnailImageFile: Express.Multer.File
     ): Promise<Events> {
       try {
         // Log the incoming DTO and files
         console.log('Received CreateEventDto:', createEventDto);
-        console.log('Received speakerImageFile:', speakerImageFile);
         console.log('Received thumbnailImageFile:', thumbnailImageFile);
   
-        if (!speakerImageFile || !thumbnailImageFile) {
-          throw new BadRequestException('Both speaker image and thumbnail image are required');
+        if ( !thumbnailImageFile) {
+          throw new BadRequestException('thumbnail is are required');
         }
   
         // Define folder names for Cloudinary uploads
-        const speakerFolderName = 'Events-Speaker';
         const thumbnailFolderName = 'Events-Thumbnail';
   
-        // Upload the speaker image
-        console.log('Uploading speaker image...');
-        const speakerImageUploadResult = await this.CloudinaryService.uploadImage(speakerImageFile, speakerFolderName);
-        console.log('Speaker image upload result:', speakerImageUploadResult);
-  
+        
         // Upload the thumbnail image
         console.log('Uploading thumbnail image...');
         const thumbnailImageUploadResult = await this.CloudinaryService.uploadImage(thumbnailImageFile, thumbnailFolderName);
@@ -46,7 +39,6 @@ export class EventsService {
         // Create the event with the uploaded image URLs
         const createdEvent = new this.eventModel({
           ...createEventDto,
-          speakerImage: speakerImageUploadResult.secure_url, // Use the uploaded speaker image URL
           thumbnailImage: thumbnailImageUploadResult.secure_url, // Use the uploaded thumbnail image URL
         });
   
