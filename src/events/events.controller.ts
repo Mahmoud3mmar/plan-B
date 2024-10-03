@@ -16,42 +16,40 @@ export class EventsController {
   
 
   @Post()
-  @ApiOperation({ summary: 'Create a new event' })
-  @ApiConsumes('multipart/form-data')
-  @ApiBody({
-    description: 'Event details and images',
-    type: CreateEventDto,
-    // Additional properties to describe file uploads
-    examples: {
-      'application/json': {
-        value: {
-          eventName: 'Sample Event',
-          eventDate: '2024-10-10',
-          description: 'Event Description',
-          location: 'Egypt, Giza',
-          speakerName: 'Speaker Name',
-          speakerImage: 'Path to speaker image file',
-          thumbnailImage: 'Path to thumbnail image file',
-        },
+@ApiOperation({ summary: 'Create a new event' })
+@ApiConsumes('multipart/form-data')
+@ApiBody({
+  description: 'Event details and image',
+  type: CreateEventDto,
+  // Example for the request body with one image
+  examples: {
+    'application/json': {
+      value: {
+        eventName: 'Sample Event',
+        eventDate: '2024-10-10',
+        description: 'Event Description',
+        location: 'Egypt, Giza',
+        speakerName: 'Speaker Name',
+        image: 'Path to image file', // Single image file
       },
     },
-  })
-  @ApiResponse({ status: 201, description: 'Event created successfully', type: Events })
-  @ApiResponse({ status: 400, description: 'Bad Request', schema: { example: { message: 'Two files are required' } } })
-  @ApiResponse({ status: 500, description: 'Internal Server Error' })
-  @UseInterceptors(FilesInterceptor('image', 2))
-  async createEvent(
-    @Body() createEventDto: CreateEventDto,
-    @UploadedFiles() images: Express.Multer.File[]
-  ): Promise<Events> {
-    if (images.length !== 2) {
-      throw new BadRequestException('Two files are required');
-    }
-
-    const [speakerImageFile, thumbnailImageFile] = images;
-
-    return this.eventsService.createEvent(createEventDto, speakerImageFile, thumbnailImageFile);
+  },
+})
+@ApiResponse({ status: 201, description: 'Event created successfully', type: Events })
+@ApiResponse({ status: 400, description: 'Bad Request', schema: { example: { message: 'Image is required' } } })
+@ApiResponse({ status: 500, description: 'Internal Server Error' })
+@UseInterceptors(FileInterceptor('image')) // Changed to handle one image
+async createEvent(
+  @Body() createEventDto: CreateEventDto,
+  @UploadedFile() image: Express.Multer.File, // Changed to handle one image
+): Promise<Events> {
+  // Check if an image was provided
+  if (!image) {
+    throw new BadRequestException('Image is required');
   }
+
+  return this.eventsService.createEvent(createEventDto, image);
+}
 
   ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   @Get('sorted')

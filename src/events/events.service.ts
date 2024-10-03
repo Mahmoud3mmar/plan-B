@@ -16,14 +16,14 @@ export class EventsService {
 
     async createEvent(
       createEventDto: CreateEventDto,
-      thumbnailImageFile: Express.Multer.File
+      image: Express.Multer.File
     ): Promise<Events> {
       try {
         // Log the incoming DTO and files
         console.log('Received CreateEventDto:', createEventDto);
-        console.log('Received thumbnailImageFile:', thumbnailImageFile);
+        console.log('Received thumbnailImageFile:', image);
   
-        if ( !thumbnailImageFile) {
+        if ( !image) {
           throw new BadRequestException('thumbnail is are required');
         }
   
@@ -33,7 +33,7 @@ export class EventsService {
         
         // Upload the thumbnail image
         console.log('Uploading thumbnail image...');
-        const thumbnailImageUploadResult = await this.CloudinaryService.uploadImage(thumbnailImageFile, thumbnailFolderName);
+        const thumbnailImageUploadResult = await this.CloudinaryService.uploadImage(image, thumbnailFolderName);
         console.log('Thumbnail image upload result:', thumbnailImageUploadResult);
   
         // Create the event with the uploaded image URLs
