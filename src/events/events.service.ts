@@ -18,41 +18,52 @@ export class EventsService {
       createEventDto: CreateEventDto,
       image: Express.Multer.File
     ): Promise<Events> {
+      // Check if the image is provided
+      this.validateImage(image);
+    
+      // Define folder name for Cloudinary uploads
+      const thumbnailFolderName = 'Events-Thumbnail';
+    
       try {
-        // Log the incoming DTO and files
-        console.log('Received CreateEventDto:', createEventDto);
-        console.log('Received thumbnailImageFile:', image);
-  
-        if ( !image) {
-          throw new BadRequestException('thumbnail is are required');
-        }
-  
-        // Define folder names for Cloudinary uploads
-        const thumbnailFolderName = 'Events-Thumbnail';
-  
-        
-        // Upload the thumbnail image
-        console.log('Uploading thumbnail image...');
-        const thumbnailImageUploadResult = await this.CloudinaryService.uploadImage(image, thumbnailFolderName);
-        console.log('Thumbnail image upload result:', thumbnailImageUploadResult);
-  
-        // Create the event with the uploaded image URLs
-        const createdEvent = new this.eventModel({
-          ...createEventDto,
-          thumbnailImage: thumbnailImageUploadResult.secure_url, // Use the uploaded thumbnail image URL
-        });
-  
-        console.log('Creating event with data:', createdEvent);
-  
-        const savedEvent = await createdEvent.save();
-        console.log('Event created successfully:', savedEvent);
-  
-        return savedEvent;
+        // Upload the thumbnail image to Cloudinary
+        const thumbnailImageUrl = await this.uploadThumbnailImage(image, thumbnailFolderName);
+    
+        // Create and save the event
+        return await this.saveEvent(createEventDto, thumbnailImageUrl);
       } catch (error) {
         console.error('Error creating event:', error.message || error);
         throw new InternalServerErrorException('Failed to create event');
       }
     }
+    
+    // Validate the uploaded image
+    private validateImage(image: Express.Multer.File): void {
+      if (!image) {
+        throw new BadRequestException('Image is required');
+      }
+    }
+    
+    // Upload the image to Cloudinary
+    private async uploadThumbnailImage(image: Express.Multer.File, folderName: string): Promise<string> {
+      console.log('Uploading thumbnail image...');
+      const uploadResult = await this.CloudinaryService.uploadImage(image, folderName);
+      console.log('Thumbnail image upload result:', uploadResult);
+      return uploadResult.secure_url; // Return the uploaded image URL
+    }
+    
+    // Save the event to the database
+    private async saveEvent(createEventDto: CreateEventDto, thumbnailImageUrl: string): Promise<Events> {
+      const createdEvent = new this.eventModel({
+        ...createEventDto,
+        thumbnailImage: thumbnailImageUrl,
+      });
+    
+      console.log('Creating event with data:', createdEvent);
+      const savedEvent = await createdEvent.save();
+      console.log('Event created successfully:', savedEvent);
+      return savedEvent;
+    }
+    
 
   /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     async getAllEvents(paginateDto: PaginateDto): Promise<any> {
@@ -98,8 +109,7 @@ export class EventsService {
 async updateEvent(
   eventId: string,
   updateEventDto: UpdateEventDto,
-  speakerImageFile?: Express.Multer.File,
-  thumbnailImageFile?: Express.Multer.File,
+  thumbnailImageFile: Express.Multer.File // Only accept the thumbnail image file
 ): Promise<Events> {
   try {
     // Find the existing event
@@ -108,16 +118,9 @@ async updateEvent(
       throw new NotFoundException(`Event with ID ${eventId} not found`);
     }
 
-    // Handle file uploads if provided
-    if (speakerImageFile) {
-      const speakerImageUploadResult = await this.CloudinaryService.uploadImage(speakerImageFile, 'Events-Speaker');
-      updateEventDto.speakerImage = speakerImageUploadResult.secure_url;
-    }
-
-    if (thumbnailImageFile) {
-      const thumbnailImageUploadResult = await this.CloudinaryService.uploadImage(thumbnailImageFile, 'Events-Thumbnail');
-      updateEventDto.thumbnailImage = thumbnailImageUploadResult.secure_url;
-    }
+    // Upload the thumbnail image if provided
+    const thumbnailImageUploadResult = await this.CloudinaryService.uploadImage(thumbnailImageFile, 'Events-Thumbnail');
+    updateEventDto.thumbnailImage = thumbnailImageUploadResult.secure_url; // Update the DTO with the new URL
 
     // Update the event with the provided details
     const updatedEvent = await this.eventModel.findByIdAndUpdate(
@@ -136,6 +139,7 @@ async updateEvent(
     throw new InternalServerErrorException('Failed to update event');
   }
 }
+
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   async deleteEvent(eventId: string): Promise<void> {
     try {

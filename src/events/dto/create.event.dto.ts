@@ -27,13 +27,4 @@ export class CreateEventDto {
   @IsNotEmpty()
   speakerName: string;
 
-//   @ApiProperty({ description: 'Image URL of the speaker' })
-//   @IsString()
-//   @IsNotEmpty()
-//   speakerImage: string;
-
-//   @ApiProperty({ description: 'Image URL of the thumbnail' })
-//   @IsString()
-//   @IsNotEmpty()
-//   thumbnailImage: string; // URL of the event's thumbnail image
 }

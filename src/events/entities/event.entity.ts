@@ -18,8 +18,6 @@ export class Events extends Document {
   @Prop({ required: true })
   speakerName: string;
 
-  @Prop({ required: true })
-  speakerImage: string; // URL to the speaker's image
 
   @Prop({ required: true })
   thumbnailImage: string; // URL to the event's thumbnail image
