@@ -116,12 +116,12 @@ async createEvent(
   ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-  @Delete(':id')
+  @Delete(':eventId')
   @ApiOperation({ summary: 'Delete an event' })
   @ApiResponse({ status: 204, description: 'Event deleted successfully' })
   @ApiResponse({ status: 404, description: 'Event not found' })
   @ApiResponse({ status: 500, description: 'Failed to delete event' })
-  async deleteEvent(@Param('id') eventId: string): Promise<void> {
+  async deleteEvent(@Param('eventId') eventId: string): Promise<void> {
     return this.eventsService.deleteEvent(eventId);
   }
 
