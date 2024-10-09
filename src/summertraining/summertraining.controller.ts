@@ -69,11 +69,16 @@ export class SummertrainingController {
     status: 404,
     description: 'Summer training not found',
   })
-  async updateSummerTraining(
+  @Put(':id')
+  @UseInterceptors(FileInterceptor('image')) // Specify the name of the field for the file
+  async update(
     @Param('id') id: string,
+    @UploadedFile() image: Express.Multer.File, // Handle uploaded file
     @Body() updateDto: UpdateSummerTrainingDto,
   ): Promise<SummerTraining> {
-    return this.summertrainingService.updateSummerTraining(id, updateDto);
+    
+
+    return this.summertrainingService.updateSummerTraining(id, updateDto,image);
   }
 
   @Delete(':id')

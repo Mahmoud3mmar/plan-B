@@ -99,19 +99,54 @@ export class SummertrainingService {
     }
     return training;
   }
+  
 
-  async updateSummerTraining(id: string, updateDto: UpdateSummerTrainingDto): Promise<SummerTraining> {
-    const updatedTraining = await this.summerTrainingModel.findByIdAndUpdate(id, updateDto, {
-      new: true, // Return the updated document
-      runValidators: true, // Run validation on update
-    }).exec();
 
-    if (!updatedTraining) {
-      throw new NotFoundException(`Summer training with ID ${id} not found`);
+
+    async updateSummerTraining(
+      id: string,
+      updateDto: UpdateSummerTrainingDto,
+      image?: Express.Multer.File, // Image file is optional
+    ): Promise<SummerTraining> {
+      try {
+        // Find the existing summer training record
+        const existingTraining = await this.summerTrainingModel.findById(id).exec();
+        if (!existingTraining) {
+          throw new NotFoundException(`Summer training with ID ${id} not found`);
+        }
+  
+        // Check if the file exists and upload it to Cloudinary if provided
+        if (image) {
+          const folderName = 'SummerTraining';
+          const uploadResult = await this.cloudinaryService.uploadImage(image, folderName);
+          if (!uploadResult || !uploadResult.secure_url) {
+            throw new BadRequestException('Image upload failed');
+          }
+          // Update the image URL in the update object
+          updateDto.image = uploadResult.secure_url; // Add the uploaded image URL to the updateDto
+        }
+  
+        // Update the summer training document with the new data
+        const updatedTraining = await this.summerTrainingModel.findByIdAndUpdate(
+          id,
+          updateDto,
+          {
+            new: true, // Return the updated document
+            runValidators: true, // Run validation on update
+          }
+        ).exec();
+  
+        return updatedTraining;
+      } catch (error) {
+        // Log the error if necessary
+        throw new Error(`Failed to update summer training: ${error.message}`);
+      }
     }
+  
+  
 
-    return updatedTraining;
-  }
+
+
   async deleteSummerTraining(id: string): Promise<void> {
     // Find the SummerTraining entity
     const summerTraining = await this.summerTrainingModel.findById(id).exec();

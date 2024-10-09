@@ -39,7 +39,10 @@ export class CreateSummerTrainingDto {
   @IsEnum(Level)
   level: Level;
 
-
+  @IsOptional() // Make the image optional
+  @IsString()
+  image?: string; // This will hold the URL/path of the image
+  
   @ApiProperty({
     description: 'Type of training (either "online" or "offline")',
     enum: ['online', 'offline'],
