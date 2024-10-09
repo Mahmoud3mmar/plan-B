@@ -1,10 +1,11 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { IsNotEmpty } from 'class-validator';
-import { Document, Types } from 'mongoose';
+import mongoose, { Document, Types } from 'mongoose';
 import { Level } from '../../course/utils/levels.enum';
 import { Instructor } from '../../instructor/entities/instructor.entity';
 import { Student } from '../../student/entities/student.entity';
 import { SubTrainingEntity } from '../../subtraining/entities/subtraining.entity';
+import { forwardRef, Inject } from '@nestjs/common'; // Use forwardRef for circular dependencies
 
 
 @Schema()
@@ -35,10 +36,9 @@ export class SummerTraining extends Document {
   @Prop({ required: true })
   type: 'online' | 'offline'; // Training mode (either 'online' or 'offline')
 
-  
-  // Relationship with SubTraining
-  @Prop({ type: [Types.ObjectId], ref: SubTrainingEntity.name, default: [] })
-  subTrainings: Types.ObjectId[]; // Array of sub-training IDs
-}
+  @Prop({ type: [Types.ObjectId], ref: 'SubTrainingEntity', default: [] })
+subTrainings: Types.ObjectId[]; // Correct usage
+ }
+
 
 export const SummerTrainingSchema = SchemaFactory.createForClass(SummerTraining);

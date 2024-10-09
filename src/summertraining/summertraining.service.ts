@@ -7,11 +7,13 @@ import { Instructor } from '../instructor/entities/instructor.entity';
 import { CloudinaryService } from '../cloudinary/cloudinary.service';
 import { GetSummerTrainingDto } from './dto/get.summer.training.dto';
 import { UpdateSummerTrainingDto } from './dto/update.summertraining.dto';
+import { SubTrainingEntity } from 'src/subtraining/entities/subtraining.entity';
 
 @Injectable()
 export class SummertrainingService {
   constructor(
     @InjectModel(SummerTraining.name) private readonly summerTrainingModel: Model<SummerTraining>,
+    @InjectModel(SubTrainingEntity.name) private readonly subTrainingModel: Model<SubTrainingEntity>,
 
 
     private readonly cloudinaryService: CloudinaryService,
@@ -110,10 +112,21 @@ export class SummertrainingService {
 
     return updatedTraining;
   }
-  async remove(id: string): Promise<void> {
-    const result = await this.summerTrainingModel.findByIdAndDelete(id).exec();
-    if (!result) {
-      throw new NotFoundException(`SummerTraining with ID ${id} not found`);
+  async deleteSummerTraining(id: string): Promise<void> {
+    // Find the SummerTraining entity
+    const summerTraining = await this.summerTrainingModel.findById(id).exec();
+    if (!summerTraining) {
+      throw new NotFoundException(`SummerTraining with id ${id} not found`);
     }
+
+    // Delete related sub-training entities
+    if (summerTraining.subTrainings.length > 0) {
+      await this.subTrainingModel.deleteMany({
+        _id: { $in: summerTraining.subTrainings },
+      }).exec();
+    }
+
+    // Finally, delete the SummerTraining entity
+    await this.summerTrainingModel.findByIdAndDelete(id).exec();
   }
 }

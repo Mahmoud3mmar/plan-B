@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Query, UseInterceptors, UploadedFile, Put } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Query, UseInterceptors, UploadedFile, Put, HttpStatus, HttpCode } from '@nestjs/common';
 import { SummertrainingService } from './summertraining.service';
 import { ApiBody, ApiConsumes, ApiOperation, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { CreateSummerTrainingDto } from './dto/create.summertraining.dto';
@@ -77,10 +77,10 @@ export class SummertrainingController {
   }
 
   @Delete(':id')
-  @ApiOperation({ summary: 'Delete a specific summer training by ID' })
-  @ApiResponse({ status: 204, description: 'The summer training has been successfully deleted.' })
-  @ApiResponse({ status: 404, description: 'Summer training not found.' })
-  async remove(@Param('id') id: string): Promise<void> {
-    await this.summertrainingService.remove(id);
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @ApiOperation({ summary: 'Delete a summer training and its related sub-trainings' })
+  @ApiResponse({ status: 204, description: 'Summer training deleted successfully' })
+  async deleteSummerTraining(@Param('id') id: string): Promise<void> {
+    await this.summertrainingService.deleteSummerTraining(id);
   }
 }
