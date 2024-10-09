@@ -4,7 +4,7 @@ import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, Types } from 'mongoose';
 import { Instructor } from '../../instructor/entities/instructor.entity';
 import { Level } from '../../course/utils/levels.enum';
-import { SummerTraining } from 'src/summertraining/entities/summertraining.entity';
+import { SummerTraining } from '../../summertraining/entities/summertraining.entity';
 
 @Schema()
 export class SubTrainingEntity extends Document {

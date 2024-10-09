@@ -7,7 +7,7 @@ import { Instructor } from '../instructor/entities/instructor.entity';
 import { CloudinaryService } from '../cloudinary/cloudinary.service';
 import { GetSummerTrainingDto } from './dto/get.summer.training.dto';
 import { UpdateSummerTrainingDto } from './dto/update.summertraining.dto';
-import { SubTrainingEntity } from 'src/subtraining/entities/subtraining.entity';
+import { SubTrainingEntity } from '../subtraining/entities/subtraining.entity';
 
 @Injectable()
 export class SummertrainingService {
