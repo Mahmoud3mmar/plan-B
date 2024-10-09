@@ -74,4 +74,10 @@ export class SubtrainingController {
       }
     }
   }
+
+
+  @Delete(':id')
+  async deleteSubTraining(@Param('id') id: string): Promise<void> {
+    await this.subtrainingService.deleteSubTraining(id);
+  }
 }

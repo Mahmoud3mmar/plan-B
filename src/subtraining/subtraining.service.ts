@@ -22,7 +22,6 @@ export class SubtrainingService {
     // Upload the image and get the URL
     const foldername = 'sub-trainings';
     const imageUrl = await this.cloudinaryService.uploadImage(image, foldername);
-  
     // Check if the provided summerTraining ID exists
     const summerTraining = await this.summerTrainingModel.findById(createSubTrainingDto.summerTraining);
     if (!summerTraining) {
@@ -129,6 +128,12 @@ export class SubtrainingService {
 
     return updatedSubTraining;
   }
-
+  async deleteSubTraining(id: string): Promise<void> {
+    const subTraining = await this.subTrainingModel.findById(id).exec();
+    if (!subTraining) {
+      throw new NotFoundException(`SubTrainingEntity with id ${id} not found`);
+    }
+    await this.subTrainingModel.findByIdAndDelete(id).exec();
+  }
 }
 

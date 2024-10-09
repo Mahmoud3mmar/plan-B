@@ -10,8 +10,8 @@ import { Instructor, InstructorSchema } from '../instructor/entities/instructor.
 @Module({
   imports: [
     MongooseModule.forFeature([
-      { name: SummerTraining.name, schema: SummerTrainingSchema },
       { name: SubTrainingEntity.name, schema: SubTrainingSchema },
+      { name: SummerTraining.name, schema: SummerTrainingSchema },
       { name: Instructor.name, schema: InstructorSchema },
 
     ]),
