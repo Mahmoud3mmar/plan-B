@@ -54,7 +54,7 @@ export class SubtrainingService {
       { _id: createSubTrainingDto.instructor },
       { $push: { subTrainings: savedSubTraining  } }
     );
-  
+    console.log(savedSubTraining)
     return savedSubTraining;
   }
   
