@@ -143,11 +143,29 @@ export class InstructorService {
       throw new InternalServerErrorException('Failed to upload image. Please try again later.');
     }
   }
-
-  async remove(id: string): Promise<void> {
-    const result = await this.instructorModel.findByIdAndDelete(id).exec();
-    if (!result) {
-      throw new NotFoundException(`Instructor with ID ${id} not found`);
+ // Function to delete an instructor
+ async deleteInstructor(instructorId: string): Promise<{ message: string }> {
+  try {
+    // Find the instructor by ID
+    const instructor = await this.instructorModel.findById(instructorId);
+    if (!instructor) {
+      throw new NotFoundException(`Instructor with ID ${instructorId} not found`);
     }
+
+    // Delete the instructor document
+    await this.instructorModel.deleteOne({ _id: instructorId });
+
+    // Delete the corresponding user document
+    const user = await this.UserModel.findById(instructor._id); // Assuming the _id matches
+    if (!user) {
+      throw new NotFoundException(`User for Instructor ID ${instructorId} not found`);
+    }
+
+    await this.UserModel.deleteOne({ _id: user._id });
+
+    return { message: `Instructor with ID ${instructorId}  deleted successfully` };
+  } catch (error) {
+    throw new InternalServerErrorException('Failed to delete instructor', error.message);
   }
+}
 }

@@ -16,10 +16,12 @@ import {
   BadRequestException,
   InternalServerErrorException,
   ParseIntPipe,
+  HttpCode,
+  HttpStatus,
 } from '@nestjs/common';
 import { InstructorService } from './instructor.service';
 import { UpdateInstructorDto } from './dto/update.instructor.dto';
-import { ApiOperation, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { ApiOperation, ApiParam, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { Instructor } from './entities/instructor.entity';
 import { AccessTokenGuard } from '../auth/guards/accessToken.guard';
 import { FileInterceptor } from '@nestjs/platform-express';
@@ -133,5 +135,25 @@ export class InstructorController {
 
 
 
-
+  @Delete(':id')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Delete an instructor by ID' })
+  @ApiParam({ name: 'id', required: true, description: 'The ID of the instructor to be deleted' })
+  @ApiResponse({
+    status: 200,
+    description: 'Instructor and corresponding user deleted successfully.',
+  })
+  @ApiResponse({ status: 404, description: 'Instructor or User not found.' })
+  @ApiResponse({ status: 500, description: 'Internal Server Error.' })
+  async deleteInstructor(@Param('id') instructorId: string): Promise<{ message: string }> {
+    try {
+      const result = await this.instructorService.deleteInstructor(instructorId);
+      return result;
+    } catch (error) {
+      if (error instanceof NotFoundException) {
+        throw new NotFoundException(error.message);
+      }
+      throw new InternalServerErrorException('Failed to delete instructor', error.message);
+    }
+  }
 }
