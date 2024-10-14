@@ -17,6 +17,8 @@ import { PaginationQueryDto } from './dto/get.category.paginated';
 export class CategoryService {
   constructor(
     @InjectModel(Category.name) private readonly categoryModel: Model<Category>,
+    @InjectModel(Course.name) private readonly courseModel: Model<Course>,
+
     // @InjectModel(Course.name) private readonly courseModel: Model<Course>,
     private readonly cloudinaryService: CloudinaryService,
   ) {}
@@ -171,4 +173,23 @@ async addCourseToCategory(categoryId: string, courseId: string): Promise<void> {
       throw new InternalServerErrorException('Failed to fetch category');
     }
   }
+
+
+
+  async deleteCategory(categoryId: string): Promise<{ message: string }> {
+    // Find the category to delete
+    const category = await this.categoryModel.findById(categoryId);
+    if (!category) {
+      throw new NotFoundException(`Category with ID ${categoryId} not found`);
+    }
+
+    // Delete the courses associated with the category
+    await this.courseModel.deleteMany({ _id: { $in: category.courses } });
+
+    // Now delete the category itself
+    await this.categoryModel.findByIdAndDelete(categoryId);
+
+    return { message: 'Category and its associated courses deleted successfully' };
+  }
 }
+
