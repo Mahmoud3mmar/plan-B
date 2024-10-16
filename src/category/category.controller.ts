@@ -100,27 +100,11 @@ export class CategoryController {
 
 
   @Delete(':id')
-  @ApiOperation({ summary: 'Delete a category and its associated courses' })
-  @ApiParam({ name: 'id', description: 'ID of the category to delete' })
-  @ApiResponse({ status: 200, description: 'Category and courses deleted successfully.' })
-  @ApiResponse({ status: 404, description: 'Category not found.' })
-  @ApiResponse({ status: 500, description: 'Internal server error.' })
-  async deleteCategory(
-    @Param('id') categoryId: string,
-  ): Promise<{ message: string }> {
-    try {
-      // Call the service to delete the category and its courses
-      return await this.categoryService.deleteCategory(categoryId);
-    } catch (error) {
-      if (error.status === HttpStatus.NOT_FOUND) {
-        throw new HttpException(error.message, HttpStatus.NOT_FOUND);
-      }
-      throw new HttpException(
-        'Failed to delete category and its associated courses.',
-        HttpStatus.INTERNAL_SERVER_ERROR,
-      );
-    }
+  async deleteCategory(@Param('id') id: string) {
+    await this.categoryService.deleteCategory(id);
+    return { message: 'Category and all associated courses and curriculum deleted successfully' };
   }
-
-
 }
+
+
+

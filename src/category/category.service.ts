@@ -12,13 +12,18 @@ import mongoose, { Model, Types } from 'mongoose';
 import { CloudinaryService } from '../cloudinary/cloudinary.service';
 import { PaginateDto } from '../events/dto/get.events.dto';
 import { PaginationQueryDto } from './dto/get.category.paginated';
+import { CourseCurriculum } from 'src/course-curriculm/entities/course-curriculm.entity';
+import { Video } from 'src/vedio/entities/vedio.entity';
+import { CurriculumBlock } from 'src/curriculum-block/entities/curriculum.block.entity';
 
 @Injectable()
 export class CategoryService {
   constructor(
     @InjectModel(Category.name) private readonly categoryModel: Model<Category>,
     @InjectModel(Course.name) private readonly courseModel: Model<Course>,
-
+    @InjectModel(CourseCurriculum.name) private readonly courseCurriculumModel: Model<CourseCurriculum>,
+    @InjectModel(CurriculumBlock.name) private readonly curriculumBlockModel: Model<CurriculumBlock>,
+    @InjectModel(Video.name) private readonly videoModel: Model<Video>,
     // @InjectModel(Course.name) private readonly courseModel: Model<Course>,
     private readonly cloudinaryService: CloudinaryService,
   ) {}
@@ -176,20 +181,43 @@ async addCourseToCategory(categoryId: string, courseId: string): Promise<void> {
 
 
 
-  async deleteCategory(categoryId: string): Promise<{ message: string }> {
-    // Find the category to delete
+  async deleteCategory(categoryId: string): Promise<void> {
+    // Find the category
     const category = await this.categoryModel.findById(categoryId);
     if (!category) {
-      throw new NotFoundException(`Category with ID ${categoryId} not found`);
+      throw new NotFoundException('Category not found');
     }
 
-    // Delete the courses associated with the category
-    await this.courseModel.deleteMany({ _id: { $in: category.courses } });
+    // Find all courses associated with the category
+    const courses = await this.courseModel.find({ category: categoryId });
 
-    // Now delete the category itself
+    // Loop through each course to delete associated curriculum, blocks, and videos
+    for (const course of courses) {
+      // Delete curriculum blocks if they exist
+      if (course.courseCurriculum && course.courseCurriculum.length > 0) {
+        const curriculums = await this.courseCurriculumModel.find({ _id: { $in: course.courseCurriculum } });
+        
+        for (const curriculum of curriculums) {
+          // Delete all curriculum blocks
+          await this.curriculumBlockModel.deleteMany({ _id: { $in: curriculum.CurriculumBlocks } });
+        }
+
+        // Now delete the curriculum itself
+        await this.courseCurriculumModel.deleteMany({ _id: { $in: course.courseCurriculum } });
+      }
+
+      // Delete videos if they exist
+      if (course.videos && course.videos.length > 0) {
+        await this.videoModel.deleteMany({ _id: { $in: course.videos } });
+      }
+
+      // Finally, delete the course
+      await this.courseModel.findByIdAndDelete(course._id);
+    }
+
+    // Finally, delete the category
     await this.categoryModel.findByIdAndDelete(categoryId);
-
-    return { message: 'Category and its associated courses deleted successfully' };
   }
 }
+
 

@@ -5,11 +5,21 @@ import { CategoryController } from './category.controller';
 import { Category, CategorySchema } from './entities/category.entity';
 import { CloudinaryService } from '../cloudinary/cloudinary.service';
 import { Course, CourseSchema } from '../course/entities/course.entity';
+import { CourseCurriculum } from 'src/course-curriculm/entities/course-curriculm.entity';
+import { CurriculumBlock } from 'src/curriculum-block/entities/curriculum.block.entity';
+import { Video } from 'src/vedio/entities/vedio.entity';
 
 @Module({
   imports: [
     MongooseModule.forFeature([{ name: Category.name, schema: CategorySchema },
-      { name: Course.name, schema: CourseSchema }
+      { name: Course.name, schema: CourseSchema },
+
+      { name: CourseCurriculum.name, schema: CourseCurriculum },
+
+      { name: CurriculumBlock.name, schema: CurriculumBlock },
+      { name: Video.name, schema: Video },
+
+
     ]),
   ],
   providers: [CategoryService,CloudinaryService],
