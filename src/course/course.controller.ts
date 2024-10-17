@@ -71,7 +71,7 @@ export class CourseController {
   //   const filters = {
   //     category,
   //     instructorName,
-  //     isPaid,
+  //     isPaid, 
   //     rating,
   //     level,
   //   };
