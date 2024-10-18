@@ -270,10 +270,9 @@ export class CourseService {
   //   }
   // }
   //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
   async findAllCourses(
-    page: number = 1,
-    limit: number = 10,
+    page?: number, // page is optional
+    limit?: number, // limit is optional
     sortOrder: 'asc' | 'desc' = 'desc',
     filters?: {
       categoryId?: string;
@@ -282,41 +281,41 @@ export class CourseService {
       rating?: number;
       level?: string;
     },
-  ): Promise<{ courses: Course[]; total: number; totalPages: number }> {
+  ): Promise<{ courses: Course[]; total: number; totalPages?: number }> { // totalPages is optional if no pagination
     const query: FilterQuery<Course> = this.buildQuery(filters);
-    const skip = this.calculateSkip(page, limit);
     const sort = this.buildSort(sortOrder);
   
     try {
-      const [total, courses] = await Promise.all([
-        this.courseModel.countDocuments(query).exec(),
-        this.courseModel
-          .find(query)
-          .skip(skip)
-          .limit(limit)
-          .sort(sort)
-          .populate('courseCurriculum') // Populate the course curriculum
-          .populate({
-            path: 'courseCurriculum', // Ensure curriculum is populated
+      const total = await this.courseModel.countDocuments(query).exec();
+      
+      let coursesQuery = this.courseModel.find(query).sort(sort)
+        .populate('courseCurriculum')
+        .populate({
+          path: 'courseCurriculum',
+          populate: {
+            path: 'CurriculumBlocks',
+            model: 'CurriculumBlock',
             populate: {
-              path: 'CurriculumBlocks', // Populate curriculum blocks within the curriculum
-              model: 'CurriculumBlock', // Ensure this matches the name of your CurriculumBlock model
-              populate: {
-                path: 'videos', // Populate videos within the curriculum blocks
-                model: 'Video',
-              },
+              path: 'videos',
+              model: 'Video',
             },
-          })
-          .populate('instructor')
-          .populate('faqs')
-          .populate('reviews')
-          .populate('category') // Populate category field
-          .exec(),
-      ]);
+          },
+        })
+        .populate('instructor')
+        .populate('faqs')
+        .populate('reviews')
+        .populate('category');
+      
+      // Apply pagination only if `page` and `limit` are provided
+      if (page && limit) {
+        const skip = this.calculateSkip(page, limit);
+        coursesQuery = coursesQuery.skip(skip).limit(limit);
+      }
   
-     
+      const courses = await coursesQuery.exec();
   
-      const totalPages = Math.ceil(total / limit);
+      // Calculate totalPages only if pagination is used
+      const totalPages = limit ? Math.ceil(total / limit) : undefined;
   
       return { courses, total, totalPages };
     } catch (error) {
@@ -324,6 +323,7 @@ export class CourseService {
       throw new InternalServerErrorException('Failed to fetch courses');
     }
   }
+  
   
   
 

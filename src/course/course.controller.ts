@@ -181,67 +181,36 @@ async deleteCourse(@Param('id') courseId: string): Promise<void> {
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+
 @Get()
-// @UseGuards(AccessTokenGuard)
-  @ApiResponse({
-    status: 200,
-    description: 'Successfully retrieved courses with pagination and sorting',
-    schema: {
-      type: 'object',
-      properties: {
-        data: {
-          type: 'array',
-          items: { $ref: '#/components/schemas/Course' },
-        },
-        total: { type: 'number' },
-        totalPages: { type: 'number' },
-        page: { type: 'number' },
-        limit: { type: 'number' },
-      },
-    },
-  })
-  @ApiQuery({ name: 'page', required: false, type: Number, example: 1, description: 'Page number for pagination' })
-  @ApiQuery({ name: 'limit', required: false, type: Number, example: 10, description: 'Number of courses per page' })
-  @ApiQuery({ name: 'sortOrder', required: false, type: String, enum: ['asc', 'desc'], example: 'desc', description: 'Sort order for courses' })
-  @ApiQuery({ name: 'category', required: false, type: String, description: 'Filter by course category' })
-  @ApiQuery({ name: 'instructorName', required: false, type: String, description: 'Filter by instructor name' })
-  @ApiQuery({ name: 'isPaid', required: false, type: String, enum: ['true', 'false'], description: 'Filter by whether the course is paid or free' })
-  @ApiQuery({ name: 'rating', required: false, type: String, description: 'Filter by course rating' })
-  @ApiQuery({ name: 'level', required: false, type: String, description: 'Filter by course level' })
-  async getAllCourses(
-    @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
-    @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number,
-    @Query('sortOrder', new DefaultValuePipe('desc')) sortOrder: 'asc' | 'desc',
-    @Query('category') category?: string,
-    @Query('instructorName') instructorName?: string,
-    @Query('isPaid') isPaid?: string,
-    @Query('rating') rating?: string,
-    @Query('level') level?: string
-  ): Promise<{ data: Course[]; total: number; totalPages: number; page: number; limit: number }> {
-    // Convert `isPaid` and `rating` to appropriate types
-    const filters = {
-      category,
-      instructorName,
-      isPaid: isPaid !== undefined ? isPaid === 'true' : undefined,
-      rating: rating ? parseFloat(rating) : undefined,
-      level,
-    };
-
-    // Validate page and limit
-    if (page < 1 || limit < 1) {
-      throw new BadRequestException('Page and limit must be greater than 0');
-    }
-
+@ApiQuery({ name: 'page', required: false, description: 'Page number for pagination (optional)' })
+@ApiQuery({ name: 'limit', required: false, description: 'Number of items per page (optional)' })
+@ApiQuery({ name: 'sortOrder', enum: ['asc', 'desc'], description: 'Sort order (asc/desc)', required: false })
+@ApiQuery({ name: 'categoryId', required: false, description: 'Filter by category ID' })
+@ApiQuery({ name: 'instructorName', required: false, description: 'Filter by instructor name' })
+@ApiQuery({ name: 'isPaid', type: Boolean, required: false, description: 'Filter by paid/free status' })
+@ApiQuery({ name: 'rating', type: Number, required: false, description: 'Filter by rating (greater than or equal)' })
+@ApiQuery({ name: 'level', required: false, description: 'Filter by course level' })
+@ApiResponse({ status: 200, description: 'Successfully fetched courses', type: [Course] })
+@ApiResponse({ status: 400, description: 'Bad Request' })
+async findAllCourses(
+  @Query('page') page?: number,
+  @Query('limit') limit?: number,
+  @Query('sortOrder') sortOrder: 'asc' | 'desc' = 'desc',
+  @Query('categoryId') categoryId?: string,
+  @Query('instructorName') instructorName?: string,
+  @Query('isPaid') isPaid?: boolean,
+  @Query('rating') rating?: number,
+  @Query('level') level?: string,
+) {
+  try {
+    const filters = { categoryId, instructorName, isPaid, rating, level };
     const result = await this.courseService.findAllCourses(page, limit, sortOrder, filters);
-
-    return {
-      data: result.courses,
-      total: result.total,
-      totalPages: result.totalPages,
-      page,
-      limit,
-    };
+    return result;
+  } catch (error) {
+    throw new BadRequestException('Failed to fetch courses');
   }
+}
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
