@@ -1,5 +1,6 @@
 import {
   BadRequestException,
+  ConflictException,
   Injectable,
   InternalServerErrorException,
   NotFoundException,
@@ -19,36 +20,47 @@ export class FaqsService {
   ) {}
   async create(createFaqDto: CreateFaqDto, courseId: string): Promise<Faq> {
     try {
-      // Check if the course exists
+      // Step 1: Check if the course exists
       const course = await this.courseModel.findById(courseId).exec();
       if (!course) {
         throw new NotFoundException(`Course with ID ${courseId} not found`);
       }
-
-      // Create the FAQ document
+  
+      // Step 2: Create the FAQ document
       const faqData = {
         ...createFaqDto,
         course: courseId, // Link the FAQ to the course by storing the courseId
       };
       const createdFaq = new this.faqModel(faqData);
       const savedFaq = await createdFaq.save();
-
-      // Update the Course entity to add the new FAQ to the faqs array
+  
+      // Step 3: Update the Course entity to add the new FAQ to the faqs array
       course.faqs.push(savedFaq.id);
       await course.save();
-
+  
       return savedFaq;
     } catch (error) {
+      // Handle known error types with specific messages
       if (error instanceof NotFoundException) {
         throw new NotFoundException(error.message);
+      } else if (error.name === 'ValidationError') {
+        // Mongoose validation errors (e.g., missing required fields)
+        const validationErrors = Object.values(error.errors).map(err => err).join(', ');
+        throw new BadRequestException(`Validation failed: ${validationErrors}`);
+      } else if (error.name === 'CastError') {
+        // Mongoose CastError when invalid IDs are provided (e.g., malformed courseId)
+        throw new BadRequestException(`Invalid ID format: ${error.message}`);
+      } else if (error.code === 11000) {
+        // Handle duplicate key errors (e.g., unique constraints in MongoDB)
+        throw new ConflictException(`Duplicate key error: ${JSON.stringify(error.keyValue)}`);
       }
-
-      // General error handling
-      throw new InternalServerErrorException(
-        'Failed to create FAQ: ' + error.message,
-      );
+  
+      // Fallback to generic internal server error for unexpected issues
+      console.error('Unexpected error creating FAQ:', error); // Log for debugging
+      throw new InternalServerErrorException('Failed to create FAQ due to an unexpected error');
     }
   }
+  
   /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   async findAll(
     page: number = 1,
