@@ -29,17 +29,17 @@ export class FaqsController {
   }
   ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   @Get()
-  // @UseGuards(AccessTokenGuard)
-
-  @ApiOperation({ summary: 'Retrieve all FAQs with pagination' })
+  @ApiOperation({ summary: 'Retrieve all FAQs with pagination and optional courseId filtering' })
   @ApiResponse({ status: 200, description: 'List of FAQs with pagination.', type: [Faq] })
   @ApiResponse({ status: 404, description: 'No FAQs found.' })
   async findAll(
-    @Query('page') page = 1, 
-    @Query('limit') limit = 10
+    @Query('page') page: number = 1,
+    @Query('limit') limit: number = 10,
+    @Query('courseId') courseId?: string, // Optional courseId query parameter
   ): Promise<{ data: Faq[], total: number }> {
-    return this.FaqsService.findAll(page, limit);
+    return this.FaqsService.findAll(page, limit, courseId);
   }
+  
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   @Get(':id')
   // @UseGuards(AccessTokenGuard)

@@ -65,15 +65,21 @@ export class FaqsService {
   async findAll(
     page: number = 1,
     limit: number = 10,
+    courseId?: string, // Optional courseId parameter
   ): Promise<{ data: Faq[]; total: number }> {
     const skip = (page - 1) * limit;
+  
+    // Define a filter object
+    const filter = courseId ? { course: courseId } : {};
+  
     const [data, total] = await Promise.all([
-      this.faqModel.find().skip(skip).limit(limit).exec(),
-      this.faqModel.countDocuments().exec(),
+      this.faqModel.find(filter).skip(skip).limit(limit).exec(), // Apply filter
+      this.faqModel.countDocuments(filter).exec(), // Apply filter to count total
     ]);
-
+  
     return { data, total };
   }
+  
   /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   async findOne(id: string): Promise<Faq> {
     const faq = await this.faqModel.findById(id).exec();
