@@ -184,6 +184,139 @@ export class AuthService {
     }
   }
 
+
+  async signUpAdmin(signUpAuthDto: SignUpAuthDto): Promise<{ message: string }> {
+    const {
+      firstName,
+      lastName,
+      phoneNumber,
+      email,
+      password,
+      confirmPassword,
+    } = signUpAuthDto;
+  
+    // Check if passwords match
+    if (password !== confirmPassword) {
+      throw new BadRequestException(
+        'Password and confirm password do not match',
+      );
+    }
+  
+    try {
+      // Check for existing user
+      const existingUser = await this.userModel.findOne({
+        $or: [{ email }, { phoneNumber }],
+      });
+  
+      if (existingUser) {
+        throw new ConflictException('Email or phone number already exists');
+      }
+  
+      // Hash the password
+      const hashedPassword = await bcrypt.hash(password, 10);
+  
+      // Generate a JWT token containing the OTP and email
+      const otp = crypto.randomInt(100000, 999999).toString();
+      const payload = { email, otp };
+      const otpToken = this.jwtService.sign(payload, {
+        secret: process.env.JWT_VERIFY_SECRET, // Ensure this environment variable is correctly set
+        expiresIn: '10m',
+      });
+  
+      // Send OTP email for verification with the token
+      await this.sendOtpEmail(email, otp, otpToken);
+  
+      // Create new user after OTP is sent successfully
+      const user = new this.userModel({
+        firstName,
+        lastName,
+        phoneNumber,
+        email,
+        role: Role.ADMIN,
+        password: hashedPassword,
+      });
+  
+      // Save user to database
+      await user.save();
+  
+      return {
+        message:
+          'Signup successful! Please verify your email using the OTP sent to your email.',
+      };
+    } catch (error) {
+      // Log the error to help diagnose the issue
+      console.error('Error during signup:', error);
+  
+      if (
+        error instanceof ConflictException ||
+        error instanceof BadRequestException
+      ) {
+        throw error; // Propagate known exceptions
+      }
+  
+      // Handle any unexpected errors
+      throw new InternalServerErrorException('Failed to sign up user', error);
+    }
+  }
+  
+  async signInAdmin(
+    loginAuthDto: LoginAuthDto,
+  ): Promise<{ accessToken: string; refreshToken: string; message: string }> {
+    const { email, password } = loginAuthDto;
+  
+    try {
+      // Validate the admin user credentials
+      const user = await this.validateUser(email, password);
+  
+      if (!user) {
+        throw new UnauthorizedException('Invalid email or password');
+      }
+  
+      // Check if the user has admin role
+      if (user.role !== 'ADMIN') {  // Replace 'ADMIN' with the appropriate role constant or value
+        throw new UnauthorizedException('You are not authorized to access this resource');
+      }
+  
+      // Check if the user's email is verified
+      if (!user.isVerified) {
+        return {
+          accessToken: '', // Provide default empty strings
+          refreshToken: '',
+          message: 'Email is not verified',
+        };
+      }
+  
+      // Invalidate the previous refresh token
+      await this.invalidateOldRefreshToken(user._id.toString());
+  
+      // Generate new access and refresh tokens
+      const tokens = await this.generateTokens(
+        user._id.toString(),
+        user.email,
+        user.role,
+      );
+  
+      // Update the user's record with the new refresh token
+      await this.updateRefreshToken(user._id.toString(), tokens.refreshToken);
+  
+      return {
+        accessToken: tokens.accessToken,
+        refreshToken: tokens.refreshToken,
+        message: 'Successfully signed in as admin',
+      };
+    } catch (error) {
+      if (error instanceof UnauthorizedException) {
+        throw error; // Re-throw known authentication errors
+      }
+  
+      // Handle unexpected errors
+      throw new InternalServerErrorException(
+        'Failed to sign in admin user',
+        error.stack,
+      );
+    }
+  }
+  
   async invalidateOldRefreshToken(userId: string): Promise<void> {
     // Fetch the user and check if there is an existing refresh token
     const user = await this.userModel.findById(userId);
@@ -229,8 +362,10 @@ export class AuthService {
     };
 
     try {
-      await this.mailService.transporter.sendMail(mailOptions);
+      await this.mailService.transporter.sendMail(mailOptions); 
     } catch (error) {
+      console.error('Error sending OTP email:', error);
+
       throw new InternalServerErrorException('Failed to send OTP email');
     }
   }

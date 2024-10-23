@@ -11,6 +11,8 @@ import {
   UseGuards,
   BadRequestException,
   UnauthorizedException,
+  HttpCode,
+  HttpStatus,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { CreateAuthDto } from './dto/create-auth.dto';
@@ -76,6 +78,18 @@ export class AuthController {
   async signUp(@Body() signUpAuthDto: SignUpAuthDto) {
     return this.authService.signUp(signUpAuthDto);
   }
+
+
+  
+  @Post('create/admin')
+  async signUpAdmin(@Body() signUpAuthDto: SignUpAuthDto) {
+    return this.authService.signUpAdmin(signUpAuthDto);
+  }
+
+
+
+
+
 
   @Post('verify/otp')
   @ApiOperation({ summary: 'Verify OTP for email verification' })
@@ -210,6 +224,13 @@ export class AuthController {
     return this.authService.requestPasswordReset(email);
   }
 
+
+
+  @Post('dashboard/signin')
+  @HttpCode(HttpStatus.OK)
+  async signInAdmin(@Body() loginAuthDto: LoginAuthDto) {
+    return await this.authService.signInAdmin(loginAuthDto);
+  }
   @Post('reset/password')
   @ApiOperation({ summary: 'Reset user password' })
   @ApiResponse({
