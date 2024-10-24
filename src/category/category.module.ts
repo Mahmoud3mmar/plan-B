@@ -5,9 +5,9 @@ import { CategoryController } from './category.controller';
 import { Category, CategorySchema } from './entities/category.entity';
 import { CloudinaryService } from '../cloudinary/cloudinary.service';
 import { Course, CourseSchema } from '../course/entities/course.entity';
-import { CourseCurriculum } from 'src/course-curriculm/entities/course-curriculm.entity';
-import { CurriculumBlock } from 'src/curriculum-block/entities/curriculum.block.entity';
-import { Video } from 'src/vedio/entities/vedio.entity';
+import { CourseCurriculum } from '../course-curriculm/entities/course-curriculm.entity';
+import { CurriculumBlock } from '../curriculum-block/entities/curriculum.block.entity';
+import { Video } from '../vedio/entities/vedio.entity';
 
 @Module({
   imports: [

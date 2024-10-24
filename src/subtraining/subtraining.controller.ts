@@ -1,10 +1,14 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseInterceptors, UploadedFile, Query, NotFoundException, BadRequestException, Put, InternalServerErrorException } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseInterceptors, UploadedFile, Query, NotFoundException, BadRequestException, Put, InternalServerErrorException, UseGuards } from '@nestjs/common';
 import { SubtrainingService } from './subtraining.service';
 import { ApiConsumes, ApiOperation, ApiParam, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { CreateSubTrainingDto } from './dto/create.subtraining.dto';
 import { SubTrainingsPaginateDto } from './dto/get.sub.trainings.dto';
 import { SubTrainingEntity } from './entities/subtraining.entity';
+import { AccessTokenGuard } from '../auth/guards/accessToken.guard';
+import { RolesGuard } from '../auth/guards/role.guards';
+import { Roles } from '../auth/Roles.decorator';
+import { Role } from '../user/common utils/Role.enum';
 
 @ApiTags('subTrainings')
 @Controller('sub/training')
@@ -13,6 +17,8 @@ export class SubtrainingController {
 
 
   @Post()
+  @UseGuards(AccessTokenGuard,RolesGuard)
+  @Roles(Role.ADMIN)  
   @ApiOperation({ summary: 'Create a new sub-training' })
   @ApiResponse({ status: 201, description: 'The sub-training has been successfully created.' })
   @ApiResponse({ status: 400, description: 'Bad request.' })
@@ -61,6 +67,8 @@ export class SubtrainingController {
 
 
   @Put(':id')
+  @UseGuards(AccessTokenGuard,RolesGuard)
+  @Roles(Role.ADMIN)  
   @ApiConsumes('multipart/form-data')
   @UseInterceptors(FileInterceptor('image'))
   @ApiResponse({
@@ -88,6 +96,8 @@ export class SubtrainingController {
 
 
   @Delete(':id')
+  @UseGuards(AccessTokenGuard,RolesGuard)
+  @Roles(Role.ADMIN)  
   async deleteSubTraining(@Param('id') id: string): Promise<void> {
     await this.subtrainingService.deleteSubTraining(id);
   }

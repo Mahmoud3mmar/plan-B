@@ -6,6 +6,9 @@ import { ApiOperation, ApiParam, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { Faq } from './entities/faq.entity';
 import { AccessTokenGuard } from '../auth/guards/accessToken.guard';
 import { Types } from 'mongoose';
+import { Role } from '../user/common utils/Role.enum';
+import { RolesGuard } from '../auth/guards/role.guards';
+import { Roles } from '../auth/Roles.decorator';
 
 @ApiTags('FAQs')
 @Controller('faqs')
@@ -13,8 +16,8 @@ export class FaqsController {
   constructor(private readonly FaqsService: FaqsService) {}
 
   @Post(':courseId')
-  // @UseGuards(AccessTokenGuard)
-
+  @UseGuards(AccessTokenGuard,RolesGuard)
+  @Roles(Role.ADMIN)  
   @ApiOperation({ summary: 'Create a new FAQ' })
   @ApiParam({
     name: 'courseId',
@@ -42,7 +45,6 @@ export class FaqsController {
   
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   @Get(':id')
-  // @UseGuards(AccessTokenGuard)
   @ApiOperation({ summary: 'Retrieve a specific FAQ by ID' })
   @ApiResponse({ status: 200, description: 'The FAQ details.', type: Faq })
   @ApiResponse({ status: 404, description: 'FAQ not found.' })
@@ -51,7 +53,8 @@ export class FaqsController {
   }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   @Put(':id')
-  // @UseGuards(AccessTokenGuard)
+  @UseGuards(AccessTokenGuard,RolesGuard)
+  @Roles(Role.ADMIN)  
   @ApiOperation({ summary: 'Update an existing FAQ by ID' })
   @ApiResponse({ status: 200, description: 'The updated FAQ.', type: Faq })
   @ApiResponse({ status: 404, description: 'FAQ not found.' })
@@ -64,6 +67,8 @@ export class FaqsController {
   }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   @Delete(':faqId')
+  @UseGuards(AccessTokenGuard,RolesGuard)
+  @Roles(Role.ADMIN)  
   // @UseGuards(AccessTokenGuard)
   @ApiOperation({ summary: 'Delete an FAQ by ID' })
   @ApiResponse({ status: 204, description: 'The FAQ has been successfully deleted.' })

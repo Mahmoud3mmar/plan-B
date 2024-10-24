@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Query, UseInterceptors, UploadedFile, Put, HttpStatus, HttpCode } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Query, UseInterceptors, UploadedFile, Put, HttpStatus, HttpCode, UseGuards } from '@nestjs/common';
 import { SummertrainingService } from './summertraining.service';
 import { ApiBody, ApiConsumes, ApiOperation, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { CreateSummerTrainingDto } from './dto/create.summertraining.dto';
@@ -6,6 +6,10 @@ import { SummerTraining } from './entities/summertraining.entity';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { GetSummerTrainingDto } from './dto/get.summer.training.dto';
 import { UpdateSummerTrainingDto } from './dto/update.summertraining.dto';
+import { AccessTokenGuard } from '../auth/guards/accessToken.guard';
+import { RolesGuard } from '../auth/guards/role.guards';
+import { Roles } from '../auth/Roles.decorator';
+import { Role } from '../user/common utils/Role.enum';
 
 @ApiTags('summertraining')
 @Controller('summer/training')
@@ -13,6 +17,8 @@ export class SummertrainingController {
   constructor(private readonly summertrainingService: SummertrainingService) {}
 
   @Post()
+  @UseGuards(AccessTokenGuard,RolesGuard)
+  @Roles(Role.ADMIN)  
   @ApiConsumes('multipart/form-data')
   @ApiBody({
     description: 'Create a new summer training',
@@ -45,6 +51,7 @@ export class SummertrainingController {
   }
 
   @Get(':id')
+  
   @ApiOperation({ summary: 'Get a summer training by ID' })
   @ApiResponse({
     status: 200,
@@ -58,18 +65,10 @@ export class SummertrainingController {
   async getSummerTrainingById(@Param('id') id: string): Promise<SummerTraining> {
     return this.summertrainingService.getSummerTrainingById(id);
   }
+ 
   @Put(':id')
-  @ApiOperation({ summary: 'Update a summer training by ID' })
-  @ApiResponse({
-    status: 200,
-    description: 'The updated summer training record',
-    type: SummerTraining,
-  })
-  @ApiResponse({
-    status: 404,
-    description: 'Summer training not found',
-  })
-  @Put(':id')
+  @UseGuards(AccessTokenGuard,RolesGuard)
+  @Roles(Role.ADMIN)  
   @UseInterceptors(FileInterceptor('image')) // Specify the name of the field for the file
   async update(
     @Param('id') id: string,
@@ -82,6 +81,8 @@ export class SummertrainingController {
   }
 
   @Delete(':id')
+  @UseGuards(AccessTokenGuard,RolesGuard)
+  @Roles(Role.ADMIN)  
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({ summary: 'Delete a summer training and its related sub-trainings' })
   @ApiResponse({ status: 204, description: 'Summer training deleted successfully' })

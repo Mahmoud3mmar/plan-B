@@ -12,9 +12,9 @@ import mongoose, { Model, Types } from 'mongoose';
 import { CloudinaryService } from '../cloudinary/cloudinary.service';
 import { PaginateDto } from '../events/dto/get.events.dto';
 import { PaginationQueryDto } from './dto/get.category.paginated';
-import { CourseCurriculum } from 'src/course-curriculm/entities/course-curriculm.entity';
-import { Video } from 'src/vedio/entities/vedio.entity';
-import { CurriculumBlock } from 'src/curriculum-block/entities/curriculum.block.entity';
+import { CourseCurriculum } from '../course-curriculm/entities/course-curriculm.entity';
+import { Video } from '../vedio/entities/vedio.entity';
+import { CurriculumBlock } from '../curriculum-block/entities/curriculum.block.entity';
 
 @Injectable()
 export class CategoryService {

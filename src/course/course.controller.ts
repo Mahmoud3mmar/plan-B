@@ -18,6 +18,8 @@ export class CourseController {
   constructor(private readonly courseService: CourseService) {}
 
   @Post()
+  @UseGuards(AccessTokenGuard,RolesGuard)
+  @Roles(Role.ADMIN)  
   @HttpCode(HttpStatus.CREATED)
   @ApiOperation({ summary: 'Create a new course' })
   @ApiBody({
@@ -94,9 +96,8 @@ export class CourseController {
   }
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   @Put(':CourseId')
-  // @UseGuards(AccessTokenGuard)
-
-  // @UseInterceptors(FileInterceptor('image'))
+  @UseGuards(AccessTokenGuard,RolesGuard)
+  @Roles(Role.ADMIN)  
   @ApiOperation({ summary: 'Update a course by ID' })
   @ApiResponse({
     status: 200,
@@ -124,7 +125,8 @@ export class CourseController {
   }
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   @Post('upload/image/:courseId')
-  // @UseGuards(AccessTokenGuard) // Add this line if authentication is needed
+  @UseGuards(AccessTokenGuard,RolesGuard)
+  @Roles(Role.ADMIN)  
   @UseInterceptors(FileInterceptor('image'))
   async uploadCourseImage(
     @Param('courseId') courseId: string,
@@ -145,6 +147,8 @@ export class CourseController {
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
  
 @Delete(':id')
+@UseGuards(AccessTokenGuard,RolesGuard)
+@Roles(Role.ADMIN)  
 @HttpCode(HttpStatus.NO_CONTENT)
 @ApiOperation({
   summary: 'Delete a course',

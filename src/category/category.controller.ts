@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, HttpCode, HttpStatus, UseInterceptors, UploadedFile, Query, InternalServerErrorException, NotFoundException, HttpException } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, HttpCode, HttpStatus, UseInterceptors, UploadedFile, Query, InternalServerErrorException, NotFoundException, HttpException, UseGuards } from '@nestjs/common';
 import { CategoryService } from './category.service';
 import { CreateCategoryDto } from './dto/create-category.dto';
 import { UpdateCategoryDto } from './dto/update-category.dto';
@@ -6,12 +6,18 @@ import { ApiInternalServerErrorResponse, ApiOkResponse, ApiOperation, ApiParam, 
 import { Category } from './entities/category.entity';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { PaginationQueryDto } from './dto/get.category.paginated';
+import { AccessTokenGuard } from '../auth/guards/accessToken.guard';
+import { RolesGuard } from '../auth/guards/role.guards';
+import { Roles } from '../auth/Roles.decorator';
+import { Role } from '../user/common utils/Role.enum';
 
 @ApiTags('categories')
 @Controller('category')
 export class CategoryController {
   constructor(private readonly categoryService: CategoryService) {}
   @Post()
+  @UseGuards(AccessTokenGuard,RolesGuard)
+  @Roles(Role.ADMIN)  
   @UseInterceptors(FileInterceptor('image'))
   @HttpCode(HttpStatus.CREATED)
   @ApiOperation({ summary: 'Create a new category' })
