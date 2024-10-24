@@ -216,15 +216,15 @@ export class AuthService {
       const hashedPassword = await bcrypt.hash(password, 10);
   
       // Generate a JWT token containing the OTP and email
-      const otp = crypto.randomInt(100000, 999999).toString();
-      const payload = { email, otp };
-      const otpToken = this.jwtService.sign(payload, {
-        secret: process.env.JWT_VERIFY_SECRET, // Ensure this environment variable is correctly set
-        expiresIn: '10m',
-      });
+      // const otp = crypto.randomInt(100000, 999999).toString();
+      // const payload = { email, otp };
+      // const otpToken = this.jwtService.sign(payload, {
+      //   secret: process.env.JWT_VERIFY_SECRET, // Ensure this environment variable is correctly set
+      //   expiresIn: '10m',
+      // });
   
-      // Send OTP email for verification with the token
-      await this.sendOtpEmail(email, otp, otpToken);
+      // // Send OTP email for verification with the token
+      // await this.sendOtpEmail(email, otp, otpToken);
   
       // Create new user after OTP is sent successfully
       const user = new this.userModel({
@@ -234,6 +234,7 @@ export class AuthService {
         email,
         role: Role.ADMIN,
         password: hashedPassword,
+        isVerified:true
       });
   
       // Save user to database
@@ -241,7 +242,7 @@ export class AuthService {
   
       return {
         message:
-          'Signup successful! Please verify your email using the OTP sent to your email.',
+          'Signup successful! ',
       };
     } catch (error) {
       // Log the error to help diagnose the issue
@@ -273,18 +274,18 @@ export class AuthService {
       }
   
       // Check if the user has admin role
-      if (user.role !== 'ADMIN') {  // Replace 'ADMIN' with the appropriate role constant or value
+      if (user.role !== Role.ADMIN) {  // Replace 'ADMIN' with the appropriate role constant or value
         throw new UnauthorizedException('You are not authorized to access this resource');
       }
   
-      // Check if the user's email is verified
-      if (!user.isVerified) {
-        return {
-          accessToken: '', // Provide default empty strings
-          refreshToken: '',
-          message: 'Email is not verified',
-        };
-      }
+      // // Check if the user's email is verified
+      // if (!user.isVerified) {
+      //   return {
+      //     accessToken: '', // Provide default empty strings
+      //     refreshToken: '',
+      //     message: 'Email is not verified',
+      //   };
+      // }
   
       // Invalidate the previous refresh token
       await this.invalidateOldRefreshToken(user._id.toString());
