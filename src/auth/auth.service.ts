@@ -160,6 +160,8 @@ export class AuthService {
       // Generate new access and refresh tokens
       const tokens = await this.generateTokens(
         user._id.toString(),
+        user.firstName,
+        user.lastName,
         user.email,
         user.role,
       );
@@ -293,6 +295,8 @@ export class AuthService {
       // Generate new access and refresh tokens
       const tokens = await this.generateTokens(
         user._id.toString(),
+        user.firstName,
+        user.lastName,
         user.email,
         user.role,
       );
@@ -664,14 +668,14 @@ export class AuthService {
     }
   }
 
-  private async generateTokens(userId: string, email: string, role: string) {
+  private async generateTokens(userId: string,firstName:string,lastName:string, email: string, role: string) {
     const [accessToken, refreshToken] = await Promise.all([
       this.jwtService.signAsync(
-        { sub: userId, email, role },
+        { sub: userId, firstName,lastName,email, role },
         { secret: process.env.JWT_ACCESS_SECRET, expiresIn: '5h' },
       ),
       this.jwtService.signAsync(
-        { sub: userId, email, role },
+        { sub: userId, firstName,lastName,email, role },
         { secret: process.env.JWT_REFRESH_SECRET, expiresIn: '7d' },
       ),
     ]);
