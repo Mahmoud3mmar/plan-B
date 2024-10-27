@@ -55,7 +55,11 @@ export class ReviewController {
   }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-
+// Example usage in a controller
+@Get(':courseId/rating')
+async getRatingPercentages(@Param('courseId') courseId: string) {
+  return await this.reviewService.getRatingPercentages(courseId);
+}
 
 @Get('sorted/:courseId')
 // @UseGuards(AccessTokenGuard)

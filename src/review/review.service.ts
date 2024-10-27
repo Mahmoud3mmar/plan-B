@@ -168,6 +168,43 @@ async getReviewsByCourse(courseId: string, paginationDto: PaginationDto) {
 
   ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-
+  async getRatingPercentages(courseId: string) {
+  
+    // Count total reviews for the given course
+    const totalReviews = await this.reviewModel.countDocuments({ courseId }).exec();
+  
+    if (totalReviews === 0) {
+      throw new NotFoundException(`No reviews found for course with ID ${courseId}`);
+    }
+  
+    // Count reviews grouped by each rating value from 1 to 5
+    const ratingCounts = await this.reviewModel.aggregate([
+      { $match: { courseId} },
+      {
+        $group: {
+          _id: '$rating',
+          count: { $sum: 1 },
+        },
+      },
+      {
+        $sort: { _id: 1 }, // Sort by rating (optional for better readability)
+      },
+    ]);
+  
+    // Calculate percentage for each rating from 1 to 5
+    const ratingPercentages = Array.from({ length: 5 }, (_, i) => {
+      const rating = i + 1;
+      const ratingData = ratingCounts.find((r) => r._id === rating);
+      const count = ratingData ? ratingData.count : 0;
+      const percentage = (count / totalReviews) * 100;
+      return { rating, percentage };
+    });
+  
+    return {
+      ratings: ratingPercentages,
+      totalReviews,
+    };
+  }
+  
 
 }
