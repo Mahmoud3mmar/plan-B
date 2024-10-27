@@ -4,6 +4,13 @@ import { Course } from '../../course/entities/course.entity';
 
 @Schema()
 export class Review extends Document {
+
+  @Prop()
+  firstName: string;
+  @Prop()
+  lastName: string;
+  @Prop()
+  email: string;
   @Prop({ required: true, type: String })
   comment: string;
 

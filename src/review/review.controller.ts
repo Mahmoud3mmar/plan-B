@@ -136,12 +136,14 @@ async getReviewsByCourse(
     @Param('courseId') courseId: string,
     @Body() createReviewDto: CreateReviewDto
   ) {
-    const studentId = req.user.sub; // Extract user ID from the JWT token
+    const {sub,...studentdetails} = req.user; // Extract user ID from the JWT token
+
     return this.reviewService.createReview(
-      studentId,
+      sub,
       courseId,
       createReviewDto.comment,
-      createReviewDto.rating
+      createReviewDto.rating,
+      studentdetails
     );
   }
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

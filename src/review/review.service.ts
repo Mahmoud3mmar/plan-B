@@ -19,16 +19,16 @@ export class ReviewService {
     @InjectModel(Course.name) private readonly courseModel: Model<Course>,
     @InjectModel(Student.name) private readonly studentModel: Model<Student>,
   ) {}
-  async createReview(studentId: string, courseId: string, comment: string, rating: number): Promise<Review> {
+  async createReview(studentId: string, courseId: string, comment: string, rating: number,studentdetails:any): Promise<Review> {
     try {
-      const courseObjectId = new Types.ObjectId(courseId);
 
+      const courseObjectId = new Types.ObjectId(courseId);
       // Check if the student exists
       const student = await this.studentModel.findById(studentId).exec();
       if (!student) {
         throw new NotFoundException(`Student with ID ${studentId} not found`);
       }
-
+      
       // Check if the course exists
       const course = await this.courseModel.findById(courseId).exec();
       if (!course) {
@@ -48,6 +48,9 @@ export class ReviewService {
 
       // Create the review
       const review = new this.reviewModel({
+        firstName:studentdetails.firstName,
+        lastName:studentdetails.lastName,
+        email:studentdetails.email,
         comment,
         rating,
         courseId: courseId,
