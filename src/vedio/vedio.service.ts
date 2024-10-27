@@ -86,22 +86,21 @@ async createVideo(
   createVideoDto: CreateVideoDto,
   courseId: string,
   curriculumBlockId: string,
-  video: Express.Multer.File,
 ): Promise<Video> {
   try {
-    const folderName = 'Courses'; // or any other dynamic name based on context
+    // const folderName = 'Courses'; // or any other dynamic name based on context
 
-    // Step 1: Upload video to Cloudinary
-    const uploadResult = await this.cloudinaryService.uploadVideo(
-      video,
-      folderName,
-    );
+    // // Step 1: Upload video to Cloudinary
+    // const uploadResult = await this.cloudinaryService.uploadVideo(
+    //   video,
+    //   folderName,
+    // );
 
-    if (!uploadResult || !uploadResult.secure_url || !uploadResult.public_id) {
-      throw new InternalServerErrorException('Video upload failed');
-    }
+    // if (!uploadResult || !uploadResult.secure_url || !uploadResult.public_id) {
+    //   throw new InternalServerErrorException('Video upload failed');
+    // }
 
-    console.log('Upload result:', uploadResult); // Log upload result
+    // console.log('Upload result:', uploadResult); // Log upload result
 
     // Step 2: Find the course by ID
     const course = await this.courseModel.findById(courseId).populate('courseCurriculum');
@@ -126,8 +125,8 @@ async createVideo(
     const createdVideo = new this.videoModel({
       ...createVideoDto,
       course: courseId,
-      videoUrl: uploadResult.secure_url,
-      publicId: uploadResult.public_id, // Ensure this field is correctly saved
+      videoUrl: createVideoDto.secure_url,
+      publicId: createVideoDto.public_id, // Ensure this field is correctly saved
     });
    
     const savedVideo = await createdVideo.save();
