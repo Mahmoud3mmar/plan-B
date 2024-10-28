@@ -66,6 +66,7 @@ export class CourseService {
       // Create a new CourseCurriculum entity for the created course
       const courseCurriculum = new this.CourseCurriculumModel({
         CurriculumBlocks: [], // Initialize with an empty array for blocks
+        courseId: createdCourse._id,
       });
   
       // Save the CourseCurriculum
