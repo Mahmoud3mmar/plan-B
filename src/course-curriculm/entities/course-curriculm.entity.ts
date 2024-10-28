@@ -6,6 +6,10 @@ import { CurriculumBlock } from '../../curriculum-block/entities/curriculum.bloc
 export class CourseCurriculum extends Document {
   @Prop({ type: [{ type: MongooseSchema.Types.ObjectId, ref: 'CurriculumBlock' }] })
   CurriculumBlocks: CurriculumBlock[]; // Array of blocks in the course curriculum
+
+  
+  @Prop()
+  courseId: string; // Add this field
 }
 
 export const CourseCurriculumSchema = SchemaFactory.createForClass(CourseCurriculum);
