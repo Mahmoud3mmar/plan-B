@@ -22,6 +22,16 @@ export class VedioController {
   ) {
     return await this.vedioService.createVideo(createVideoDto, courseId, curriculumBlockId);
   }
+
+  @Post(':curriculumBlockId')
+  // @UseInterceptors(FileInterceptor('video'))
+  async uploadVideowithoutCourseId(
+    @Param('curriculumBlockId') curriculumBlockId: string,
+    // @UploadedFile() video: Express.Multer.File,
+    @Body() createVideoDto: CreateVideoDto
+  ) {
+    return await this.vedioService.createVideowithoutCourseId(createVideoDto, curriculumBlockId);
+  }
   @Get('sorted')
   @ApiQuery({ name: 'courseId', type: String, required: true, example: '66e1a62c3eae57948828541f' })
   @ApiQuery({ name: 'page', type: Number, required: false, example: 1 })

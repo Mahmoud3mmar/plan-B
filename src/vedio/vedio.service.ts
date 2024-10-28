@@ -178,6 +178,108 @@ async createVideo(
     throw new InternalServerErrorException('Failed to create video');
   }
 }
+
+async createVideowithoutCourseId(
+  createVideoDto: CreateVideoDto,
+  curriculumBlockId: string,
+): Promise<Video> {
+  
+    // const folderName = 'Courses'; // or any other dynamic name based on context
+
+    // // Step 1: Upload video to Cloudinary
+    // const uploadResult = await this.cloudinaryService.uploadVideo(
+    //   video,
+    //   folderName,
+    // );
+
+    // if (!uploadResult || !uploadResult.secure_url || !uploadResult.public_id) {
+    //   throw new InternalServerErrorException('Video upload failed');
+    // }
+
+    // console.log('Upload result:', uploadResult); // Log upload result
+
+   
+
+    // Step 3: Find the curriculum block by curriculumBlockId
+    // const curriculumBlock = await this.curriculumBlockModel.findById(curriculumBlockId);
+    const curriculumBlock = await this.curriculumBlockModel
+      .findById(curriculumBlockId)
+      .populate({
+        path: 'courseCurriculum',
+        select: 'courseId', // Select only the courseId field from the CourseCurriculum
+      })
+      .exec();
+    if (!curriculumBlock) {
+      throw new NotFoundException(`Curriculum Block with ID ${curriculumBlockId} not found`);
+    }
+    console.log(curriculumBlock.courseCurriculum.courseId)
+    const courseId=curriculumBlock.courseCurriculum.courseId
+     // Step 2: Find the course by ID
+     const course = await this.courseModel.findById(courseId).populate('courseCurriculum');
+     if (!course) {
+       throw new NotFoundException(`Course with ID ${courseId} not found`);
+     }
+    // // Step 4: Ensure the curriculum block belongs to the course's curriculum
+    // if (curriculumBlock.courseCurriculum.toString() !== course.courseCurriculum.toString()) {
+    //   throw new BadRequestException(
+    //     `Curriculum Block with ID ${curriculumBlockId} does not belong to the Course's curriculum`,
+    //   );
+    // }
+
+    // Step 5: Create and save the video record in MongoDB
+    const createdVideo = new this.videoModel({
+      ...createVideoDto,
+      course: courseId,
+      videoUrl: createVideoDto.secure_url,
+      publicId: createVideoDto.public_id, // Ensure this field is correctly saved
+    });
+   
+    const savedVideo = await createdVideo.save();
+    await this.courseModel.findByIdAndUpdate(
+      courseId,
+      {
+        $push: { videos: savedVideo._id },
+        // totalDuration: updatedTotalDuration,
+      },
+      { new: true, useFindAndModify: false },
+    );
+
+    
+    console.log('Video created and saved to DB:', savedVideo);
+
+    
+
+  // Step 6: Calculate the video duration in minutes
+  const videoDurationInMinutes = this.convertDurationToMinutes(createVideoDto.duration);
+  console.log(`Video duration in minutes: ${videoDurationInMinutes}`); // Log video duration
+
+  // Step 7: Convert the existing totalDuration of the curriculum block to minutes
+  const currentDurationInMinutes = this.convertDurationToMinutes(curriculumBlock.totalDuration || '00:00');
+  console.log(`Current duration in minutes: ${currentDurationInMinutes}`); // Log current duration
+
+  // Step 8: Calculate the new total duration
+  const updatedTotalDurationInMinutes = currentDurationInMinutes + videoDurationInMinutes;
+  console.log(`Updated total duration in minutes: ${updatedTotalDurationInMinutes}`); // Log updated duration
+
+    // Step 11: Update the curriculum block with the new totalDuration and add the video ID
+    const updatedBlock = await this.curriculumBlockModel.findByIdAndUpdate(
+      curriculumBlockId,
+      {
+        $push: { videos: savedVideo._id },
+        totalDuration: this.convertMinutesToDuration(updatedTotalDurationInMinutes), // Convert back to 'mm:ss' format
+      },
+      { new: true, useFindAndModify: false },
+    );
+
+    if (!updatedBlock) {
+      throw new NotFoundException(`Curriculum Block with ID ${curriculumBlockId} not found`);
+    }
+
+    // console.log('Video added to curriculum block:', updatedBlock);
+
+    return savedVideo;
+  
+}
 // Helper Functions
 private convertDurationToMinutes(duration: string): number {
   if (!duration) {
