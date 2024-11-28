@@ -14,12 +14,14 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { CourseCurriculmModule } from './course-curriculm/course-curriculm.module';
 import { StudentModule } from './student/student.module';
 import { TokenBlacklistModule } from './token-blacklist/token-blacklist.module';
-
+ 
 import { VedioModule } from './vedio/vedio.module';
 import { EventsModule } from './events/events.module';
 import { CategoryModule } from './category/category.module';
 import { SubtrainingModule } from './subtraining/subtraining.module';
 import { CurriculumBlockModule } from './curriculum-block/curriculum.block.module';
+import { AwsModule } from './aws/aws.module';
+import { ContactUsModule } from './contact-us/contact-us.module';
 
 @Module({
   imports: [AuthModule, UserModule, CourseModule, FaqsModule, InstructorModule, ReviewModule, SummertrainingModule,VedioModule,
@@ -29,15 +31,18 @@ import { CurriculumBlockModule } from './curriculum-block/curriculum.block.modul
  
   MongooseModule.forRoot(process.env.MONGODB_URI),
   CourseCurriculmModule,
-  StudentModule,
+  StudentModule,  
   TokenBlacklistModule,
-  VedioModule,
+  VedioModule, 
   EventsModule,
   CategoryModule, 
   SubtrainingModule,
   CurriculumBlockModule,
+  AwsModule,
+  ContactUsModule,  
+
 ],
-  controllers: [AppController],
+  controllers: [AppController], 
   providers: [AppService
   
   ],
