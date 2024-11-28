@@ -8,6 +8,7 @@ import { SubTrainingEntity } from '../../subtraining/entities/subtraining.entity
 import { forwardRef, Inject } from '@nestjs/common'; // Use forwardRef for circular dependencies
 
 
+
 @Schema()
 export class SummerTraining extends Document {
   @Prop({ required: true })
@@ -16,8 +17,8 @@ export class SummerTraining extends Document {
   @Prop({ required: true })
   image: string; // URL or path to the image
 
-  @Prop({ required: true })
-  duration: string; // Duration of the training (e.g., '6 weeks', '3 months')
+  @Prop({ default: 0 })
+  subTrainingsCount: number; // Duration of the training (e.g., '6 weeks', '3 months')
 
   @Prop({ type: [Types.ObjectId], ref: Student.name })
   students: Types.ObjectId[]; // Array of student IDs enrolled in the training
@@ -25,20 +26,16 @@ export class SummerTraining extends Document {
   @Prop({ required: true, default: 0 })
   numberOfStudentsEnrolled: number; // Number of students enrolled in the training
 
-  
-  @IsNotEmpty()
-  @Prop({ type: String, enum: Level, default: Level.AllLevels })
-  level: Level; // Level of the training (e.g., 'Beginner', 'Intermediate', 'Advanced')
-  
+  // @IsNotEmpty()
+  // @Prop({ type: String, enum: trainingLevel, trainingLevel: Level.AllLevels })
+  // level: trainingLevel; 
 
-
-
-  @Prop({ required: true })
-  type: 'online' | 'offline'; // Training mode (either 'online' or 'offline')
+  // @Prop({ required: true })
+  // type: 'online' | 'offline'; // Training mode (either 'online' or 'offline')
 
   @Prop({ type: [Types.ObjectId], ref: 'SubTrainingEntity', default: [] })
-subTrainings: Types.ObjectId[]; // Correct usage
- }
+  subTrainings: Types.ObjectId[]; // Correct usage
+}
 
-
-export const SummerTrainingSchema = SchemaFactory.createForClass(SummerTraining);
+export const SummerTrainingSchema =
+  SchemaFactory.createForClass(SummerTraining);

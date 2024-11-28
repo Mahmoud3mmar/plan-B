@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Query, UseInterceptors, UploadedFile, Put, HttpStatus, HttpCode, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Query, UseInterceptors, UploadedFile, Put, HttpStatus, HttpCode, UseGuards, BadRequestException } from '@nestjs/common';
 import { SummertrainingService } from './summertraining.service';
 import { ApiBody, ApiConsumes, ApiOperation, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { CreateSummerTrainingDto } from './dto/create.summertraining.dto';
@@ -17,8 +17,8 @@ export class SummertrainingController {
   constructor(private readonly summertrainingService: SummertrainingService) {}
 
   @Post()
-  @UseGuards(AccessTokenGuard,RolesGuard)
-  @Roles(Role.ADMIN)  
+  // @UseGuards(AccessTokenGuard,RolesGuard)
+  // @Roles(Role.ADMIN)  
   @ApiConsumes('multipart/form-data')
   @ApiBody({
     description: 'Create a new summer training',
@@ -29,9 +29,9 @@ export class SummertrainingController {
     @Body() createSummerTrainingDto: CreateSummerTrainingDto,
     @UploadedFile() image: Express.Multer.File, // Handle uploaded file
   ) {
-    // if (!file) {
-    //   throw new BadRequestException('Image file is required');
-    // }
+    if (!image) {
+      throw new BadRequestException('Image file is required');
+    }
 
     // // Upload the file to Cloudinary
     // const uploadResult = await this.cloudinaryService.uploadImage(file);

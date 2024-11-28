@@ -106,7 +106,7 @@ export class SummertrainingService {
     async updateSummerTraining(
       id: string,
       updateDto: UpdateSummerTrainingDto,
-      image?: Express.Multer.File, // Image file is optional
+      image: Express.Multer.File, // Image file is optional
     ): Promise<SummerTraining> {
       try {
         // Find the existing summer training record
@@ -123,7 +123,7 @@ export class SummertrainingService {
             throw new BadRequestException('Image upload failed');
           }
           // Update the image URL in the update object
-          updateDto.image = uploadResult.secure_url; // Add the uploaded image URL to the updateDto
+          image = uploadResult.secure_url; // Add the uploaded image URL to the updateDto
         }
   
         // Update the summer training document with the new data
