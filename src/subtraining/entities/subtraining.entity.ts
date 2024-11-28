@@ -5,6 +5,17 @@ import { Document, Types } from 'mongoose';
 import { Instructor } from '../../instructor/entities/instructor.entity';
 import { Level } from '../../course/utils/levels.enum';
 import { SummerTraining } from '../../summertraining/entities/summertraining.entity';
+import { IsNotEmpty } from 'class-validator';
+export enum trainingLevel{
+  One = 'One',
+  Two = 'Two',
+  Three = 'Three',
+  Four = 'Four',
+  Five = 'Five',
+  Six = 'Six',
+  Graduate = 'Graduate',
+  AllLevels = 'AllLevels',
+}
 
 @Schema()
 export class SubTrainingEntity extends Document {
@@ -24,16 +35,71 @@ export class SubTrainingEntity extends Document {
   numberOfStudentsEnrolled: number; // Number of students enrolled in the sub-training
 
   @Prop({ required: true })
-  image: string; // URL or path to the sub-training image
+  image: string; 
 
-  @Prop({ required: true, type: String, enum: Level, default: Level.AllLevels })
-  level: Level; // Level of the sub-training (e.g., 'Beginner', 'Intermediate', 'Advanced')
+ 
+  @Prop({ required: true })
+  description: string;
+  
+  @Prop({ required: true })
+  location_Name: string; 
+
+ 
+  @Prop({ required: true })
+  location_Lat: string; 
+
+ 
+  @Prop({ required: true })
+  location_Long: string; 
+
+ 
 
   @Prop({ required: true })
   isPaid: boolean; // Whether the sub-training is paid or not
 
+  
+  @Prop()
+  price?: number; 
+
+  
+  @Prop()
+  seats: number; 
+
+  
+  @Prop({ default: function() { return this.seats; } }) // Set default to the value of seats
+  AvailableSeats: number; 
   @Prop({ type: Types.ObjectId, ref: SummerTraining.name, required: true })
   summerTraining: Types.ObjectId; // Reference to the SummerTrainingEntity
+
+  
+  @Prop({ required: true })
+  type: 'online' | 'offline'; // Training mode (either 'online' or 'offline')
+
+  
+  @Prop({ required: true ,default:[]})
+  topics: string[]; 
+
+  @IsNotEmpty()
+  @Prop({ type: String, enum: trainingLevel, trainingLevel: Level.AllLevels })
+  level: trainingLevel; 
+
+  @Prop({ required: false })
+  hasOffer: boolean;
+
+  @Prop({ required: false })
+  offerPrice?: number;
+
+  @Prop({ required: false })
+  offerStartDate?: Date;
+
+  @Prop({ required: false })
+  offerEndDate?: Date;
+
+  @Prop({ required: false })
+  offerDescription?: string;
+
+  @Prop({ required: false, default: 0 })
+  discountPercentage?: number;
 }
 
 export const SubTrainingSchema = SchemaFactory.createForClass(SubTrainingEntity);

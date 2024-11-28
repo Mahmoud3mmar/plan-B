@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException, InternalServerErrorException } from '@nestjs/common';
 import { CreateSubTrainingDto } from './dto/create.subtraining.dto';
 import { SubTrainingEntity } from './entities/subtraining.entity';
 import { SummerTraining } from '../summertraining/entities/summertraining.entity';
@@ -7,6 +7,7 @@ import { InjectModel } from '@nestjs/mongoose';
 import { CloudinaryService } from '../cloudinary/cloudinary.service';
 import { Instructor } from '../instructor/entities/instructor.entity';
 import { SubTrainingsPaginateDto } from './dto/get.sub.trainings.dto';
+import { CreateOfferDto } from './dto/create-offer.dto';
 
 @Injectable()
 export class SubtrainingService {
@@ -134,6 +135,83 @@ export class SubtrainingService {
       throw new NotFoundException(`SubTrainingEntity with id ${id} not found`);
     }
     await this.subTrainingModel.findByIdAndDelete(id).exec();
+  }
+
+  async addOffer(subTrainingId: string, createOfferDto: CreateOfferDto): Promise<SubTrainingEntity> {
+    try {
+      // Find the sub-training
+      const subTraining = await this.subTrainingModel.findById(subTrainingId);
+      if (!subTraining) {
+        throw new NotFoundException('Sub-training not found');
+      }
+
+      // Validate dates
+      const now = new Date();
+      const startDate = new Date(createOfferDto.offerStartDate);
+      const endDate = new Date(createOfferDto.offerEndDate);
+
+      if (startDate > endDate) {
+        throw new BadRequestException('Offer end date must be after start date');
+      }
+
+      if (endDate < now) {
+        throw new BadRequestException('Offer end date must be in the future');
+      }
+
+      // Validate offer price
+      if (createOfferDto.offerPrice >= subTraining.price) {
+        throw new BadRequestException('Offer price must be less than original price');
+      }
+
+      // Calculate discount percentage if not provided
+      if (!createOfferDto.discountPercentage) {
+        createOfferDto.discountPercentage = 
+          ((subTraining.price - createOfferDto.offerPrice) / subTraining.price) * 100;
+      }
+
+      // Update the sub-training with offer details
+      const updatedSubTraining = await this.subTrainingModel.findByIdAndUpdate(
+        subTrainingId,
+        {
+          hasOffer: true,
+          offerPrice: createOfferDto.offerPrice,
+          offerStartDate: startDate,
+          offerEndDate: endDate,
+          offerDescription: createOfferDto.offerDescription,
+          discountPercentage: createOfferDto.discountPercentage,
+        },
+        { new: true }
+      );
+
+      return updatedSubTraining;
+    } catch (error) {
+      if (error instanceof BadRequestException || error instanceof NotFoundException) {
+        throw error;
+      }
+      throw new InternalServerErrorException('Failed to add offer to sub-training');
+    }
+  }
+
+  async removeOffer(subTrainingId: string): Promise<SubTrainingEntity> {
+    const subTraining = await this.subTrainingModel.findById(subTrainingId);
+    if (!subTraining) {
+      throw new NotFoundException('Sub-training not found');
+    }
+
+    return await this.subTrainingModel.findByIdAndUpdate(
+      subTrainingId,
+      {
+        hasOffer: false,
+        $unset: {
+          offerPrice: "",
+          offerStartDate: "",
+          offerEndDate: "",
+          offerDescription: "",
+          discountPercentage: ""
+        }
+      },
+      { new: true }
+    );
   }
 }
 

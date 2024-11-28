@@ -9,6 +9,7 @@ import { AccessTokenGuard } from '../auth/guards/accessToken.guard';
 import { RolesGuard } from '../auth/guards/role.guards';
 import { Roles } from '../auth/Roles.decorator';
 import { Role } from '../user/common utils/Role.enum';
+import { CreateOfferDto } from './dto/create-offer.dto';
 
 @ApiTags('subTrainings')
 @Controller('sub/training')
@@ -17,8 +18,8 @@ export class SubtrainingController {
 
 
   @Post()
-  @UseGuards(AccessTokenGuard,RolesGuard)
-  @Roles(Role.ADMIN)  
+  // @UseGuards(AccessTokenGuard,RolesGuard)
+  // @Roles(Role.ADMIN)  
   @ApiOperation({ summary: 'Create a new sub-training' })
   @ApiResponse({ status: 201, description: 'The sub-training has been successfully created.' })
   @ApiResponse({ status: 400, description: 'Bad request.' })
@@ -32,17 +33,23 @@ export class SubtrainingController {
       throw new BadRequestException('Image file is required');
     }
 
-    // Log the received image for debugging
-    console.log('Received image:', image);
+    return await this.subtrainingService.create(createSubTrainingDto, image);
 
-    try {
-      return await this.subtrainingService.create(createSubTrainingDto, image);
-    } catch (error) {
-      console.error('Error creating sub-training:', error.message || error);
-      throw new InternalServerErrorException('Failed to create sub-training');
-    }
+  }
+  @Post(':id/offer')
+  @ApiOperation({ summary: 'Add an offer to a sub-training' })
+  async addOffer(
+    @Param('id') id: string,
+    @Body() createOfferDto: CreateOfferDto
+  ) {
+    return await this.subtrainingService.addOffer(id, createOfferDto);
   }
 
+  @Delete(':id/offer')
+  @ApiOperation({ summary: 'Remove an offer from a sub-training' })
+  async removeOffer(@Param('id') id: string) {
+    return await this.subtrainingService.removeOffer(id);
+  }
 
 
   @Get('sorted')
