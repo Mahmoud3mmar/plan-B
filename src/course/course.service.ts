@@ -6,6 +6,7 @@ import {
   InternalServerErrorException,
   NotFoundException,
   Query,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { CreateCourseDto } from './dto/create.course.dto';
 import { UpdateCourseDto } from './dto/update.course.dto';
@@ -23,6 +24,7 @@ import { Faq } from '../faqs/entities/faq.entity';
 import { CourseCurriculum } from '../course-curriculm/entities/course-curriculm.entity';
 import { Review } from '../review/entities/review.entity';
 import { Video } from '../vedio/entities/vedio.entity';
+// import { PaymentService } from '../payment/payment.service';
 
 @Injectable()
 export class CourseService {
@@ -40,6 +42,7 @@ export class CourseService {
 
     @InjectModel(Instructor.name)
     private readonly instructorModel: Model<Instructor>,
+    // private readonly paymentService: PaymentService,
   ) {}
   async createCourse(createCourseDto: CreateCourseDto): Promise<Course> {
     try {
@@ -76,9 +79,10 @@ export class CourseService {
       createdCourse.courseCurriculum.push(createdCourseCurriculum); // Push the new curriculum ID into the array
       await createdCourse.save();
   
-      // Update the category with the new course ID
+      // Update the category with the new course ID and increment courseCount
       if (categoryId) {
         await this.CategoryService.addCourseToCategory(categoryId, createdCourse._id.toString());
+        await this.CategoryService.incrementCourseCount(categoryId); // Increment course count
       }
   
       return createdCourse;
@@ -441,5 +445,27 @@ export class CourseService {
   //     console.error('Internal server error:', error);
   //     throw new InternalServerErrorException('Failed to assign course to instructor', error.message);
   //   }
+  // }
+
+  // async accessCourse(courseId: string, userId: string): Promise<boolean> {
+  //   // Fetch course details to get the price
+  //   const course = await this.courseModel.findById(courseId).exec();
+  //   if (!course) {
+  //     throw new NotFoundException('Course not found');
+  //   }
+
+  //   // Initiate payment
+  //   const paymentResponse = await this.paymentService.initiatePayment(courseId, course.price, userId);
+
+  //   // Verify payment
+  //   const isPaymentSuccessful = await this.paymentService.verifyPayment(paymentResponse.transactionId);
+  //   if (!isPaymentSuccessful) {
+  //     throw new UnauthorizedException('Payment verification failed');
+  //   }
+
+  //   // Grant access to course videos
+  //   // Logic to update user's access to the course
+
+  //   return true;
   // }
 }
