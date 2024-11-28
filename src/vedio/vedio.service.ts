@@ -16,6 +16,7 @@ import { UpdateVideoDto } from './dto/update.vedio.dto';
 import { CloudinaryService } from '../cloudinary/cloudinary.service';
 import { Course } from '../course/entities/course.entity';
 import { CurriculumBlock } from '../curriculum-block/entities/curriculum.block.entity';
+import { AwsService } from '../aws/aws.service';
 
 @Injectable()
 export class VedioService {
@@ -23,10 +24,40 @@ export class VedioService {
     @InjectModel(Video.name) private readonly videoModel: Model<Video>,
     @InjectModel(Course.name) private readonly courseModel: Model<Course>,
     @InjectModel(CurriculumBlock.name) private readonly curriculumBlockModel: Model<CurriculumBlock>,
+    private readonly awsService: AwsService,
 
 
     private readonly cloudinaryService: CloudinaryService, // Inject the Cloudinary service
   ) {}
+
+
+  // async createVideo(
+  //   createVideoDto: CreateVideoDto,
+  //   courseId: string,
+  //   curriculumBlockId: string,
+  //   file: Express.Multer.File,
+  // ): Promise<any> {
+  //   try {
+  //     // Upload to Backblaze
+  //     const uploadResult = await this.backblazeService.uploadFile(file);
+
+  //     // Create video record
+  //     const createdVideo = new this.videoModel({
+  //       ...createVideoDto,
+  //       course: courseId,
+  //       videoUrl: uploadResult.fileUrl,
+  //       publicId: uploadResult.fileId,
+  //     });
+
+  //     // ... rest of your existing logic ...
+  //   } catch (error) {
+  //     console.error('Error creating video:', error);
+  //     throw new InternalServerErrorException('Failed to create video');
+  //   }
+  // }
+
+
+  
   // async createVideo(
   //   createVideoDto: CreateVideoDto,
   //   courseId: string,
@@ -82,86 +113,259 @@ export class VedioService {
  
  
   
-async createVideo(
+// async createVideo(
+//   createVideoDto: CreateVideoDto,
+//   courseId: string,
+//   curriculumBlockId: string,
+// ): Promise<Video> {
+//   try {
+//     // const folderName = 'Courses'; // or any other dynamic name based on context
+
+//     // // Step 1: Upload video to Cloudinary
+//     // const uploadResult = await this.cloudinaryService.uploadVideo(
+//     //   video,
+//     //   folderName,
+//     // );
+
+//     // if (!uploadResult || !uploadResult.secure_url || !uploadResult.public_id) {
+//     //   throw new InternalServerErrorException('Video upload failed');
+//     // }
+
+//     // console.log('Upload result:', uploadResult); // Log upload result
+
+//     // Step 2: Find the course by ID
+//     const course = await this.courseModel.findById(courseId).populate('courseCurriculum');
+//     if (!course) {
+//       throw new NotFoundException(`Course with ID ${courseId} not found`);
+//     }
+
+//     // Step 3: Find the curriculum block by curriculumBlockId
+//     const curriculumBlock = await this.curriculumBlockModel.findById(curriculumBlockId);
+//     if (!curriculumBlock) {
+//       throw new NotFoundException(`Curriculum Block with ID ${curriculumBlockId} not found`);
+//     }
+
+//     // // Step 4: Ensure the curriculum block belongs to the course's curriculum
+//     // if (curriculumBlock.courseCurriculum.toString() !== course.courseCurriculum.toString()) {
+//     //   throw new BadRequestException(
+//     //     `Curriculum Block with ID ${curriculumBlockId} does not belong to the Course's curriculum`,
+//     //   );
+//     // }
+
+//     // Step 5: Create and save the video record in MongoDB
+//     const createdVideo = new this.videoModel({
+//       ...createVideoDto,
+//       course: courseId,
+//       videoUrl: createVideoDto.secure_url,
+//       publicId: createVideoDto.public_id, // Ensure this field is correctly saved
+//     });
+   
+//     const savedVideo = await createdVideo.save();
+//     await this.courseModel.findByIdAndUpdate(
+//       courseId,
+//       {
+//         $push: { videos: savedVideo._id },
+//         // totalDuration: updatedTotalDuration,
+//       },
+//       { new: true, useFindAndModify: false },
+//     );
+
+    
+//     console.log('Video created and saved to DB:', savedVideo);
+
+    
+
+//   // Step 6: Calculate the video duration in minutes
+//   const videoDurationInMinutes = this.convertDurationToMinutes(createVideoDto.duration);
+//   console.log(`Video duration in minutes: ${videoDurationInMinutes}`); // Log video duration
+
+//   // Step 7: Convert the existing totalDuration of the curriculum block to minutes
+//   const currentDurationInMinutes = this.convertDurationToMinutes(curriculumBlock.totalDuration || '00:00');
+//   console.log(`Current duration in minutes: ${currentDurationInMinutes}`); // Log current duration
+
+//   // Step 8: Calculate the new total duration
+//   const updatedTotalDurationInMinutes = currentDurationInMinutes + videoDurationInMinutes;
+//   console.log(`Updated total duration in minutes: ${updatedTotalDurationInMinutes}`); // Log updated duration
+
+//     // Step 11: Update the curriculum block with the new totalDuration and add the video ID
+//     const updatedBlock = await this.curriculumBlockModel.findByIdAndUpdate(
+//       curriculumBlockId,
+//       {
+//         $push: { videos: savedVideo._id },
+//         totalDuration: this.convertMinutesToDuration(updatedTotalDurationInMinutes), // Convert back to 'mm:ss' format
+//       },
+//       { new: true, useFindAndModify: false },
+//     );
+
+//     if (!updatedBlock) {
+//       throw new NotFoundException(`Curriculum Block with ID ${curriculumBlockId} not found`);
+//     }
+
+//     // console.log('Video added to curriculum block:', updatedBlock);
+
+//     return savedVideo;
+//   } catch (error) {
+//     console.error('Error creating video:', error.message || error);
+//     throw new InternalServerErrorException('Failed to create video');
+//   }
+// }
+ 
+// async createVideowithoutCourseIdone(
+//   createVideoDto: CreateVideoDto,
+//   curriculumBlockId: string,
+// ): Promise<Video> {
+  
+//     // const folderName = 'Courses'; // or any other dynamic name based on context
+
+//     // // Step 1: Upload video to Cloudinary
+//     // const uploadResult = await this.cloudinaryService.uploadVideo(
+//     //   video,
+//     //   folderName,
+//     // );
+
+//     // if (!uploadResult || !uploadResult.secure_url || !uploadResult.public_id) {
+//     //   throw new InternalServerErrorException('Video upload failed');
+//     // }
+
+//     // console.log('Upload result:', uploadResult); // Log upload result
+
+   
+
+//     // Step 3: Find the curriculum block by curriculumBlockId
+//     // const curriculumBlock = await this.curriculumBlockModel.findById(curriculumBlockId);
+//     const curriculumBlock = await this.curriculumBlockModel
+//       .findById(curriculumBlockId)
+//       .populate({
+//         path: 'courseCurriculum',
+//         select: 'courseId', // Select only the courseId field from the CourseCurriculum
+//       })
+//       .exec();
+//     if (!curriculumBlock) {
+//       throw new NotFoundException(`Curriculum Block with ID ${curriculumBlockId} not found`);
+//     }
+//     console.log(curriculumBlock.courseCurriculum.courseId)
+//     const courseId=curriculumBlock.courseCurriculum.courseId
+//      // Step 2: Find the course by ID
+//      const course = await this.courseModel.findById(courseId).populate('courseCurriculum');
+//      if (!course) {
+//        throw new NotFoundException(`Course with ID ${courseId} not found`);
+//      }
+//     // // Step 4: Ensure the curriculum block belongs to the course's curriculum
+//     // if (curriculumBlock.courseCurriculum.toString() !== course.courseCurriculum.toString()) {
+//     //   throw new BadRequestException(
+//     //     `Curriculum Block with ID ${curriculumBlockId} does not belong to the Course's curriculum`,
+//     //   );
+//     // }
+
+//     // Step 5: Create and save the video record in MongoDB
+//     const createdVideo = new this.videoModel({
+//       ...createVideoDto,
+//       course: courseId,
+//       videoUrl: createVideoDto.secure_url,
+//       publicId: createVideoDto.public_id, // Ensure this field is correctly saved
+//     });
+   
+//     const savedVideo = await createdVideo.save();
+//     await this.courseModel.findByIdAndUpdate(
+//       courseId,
+//       {
+//         $push: { videos: savedVideo._id },
+//         // totalDuration: updatedTotalDuration,
+//       },
+//       { new: true, useFindAndModify: false },
+//     );
+
+    
+//     console.log('Video created and saved to DB:', savedVideo);
+
+    
+
+//   // Step 6: Calculate the video duration in minutes
+//   const videoDurationInMinutes = this.convertDurationToMinutes(createVideoDto.duration);
+//   console.log(`Video duration in minutes: ${videoDurationInMinutes}`); // Log video duration
+
+//   // Step 7: Convert the existing totalDuration of the curriculum block to minutes
+//   const currentDurationInMinutes = this.convertDurationToMinutes(curriculumBlock.totalDuration || '00:00');
+//   console.log(`Current duration in minutes: ${currentDurationInMinutes}`); // Log current duration
+
+//   // Step 8: Calculate the new total duration
+//   const updatedTotalDurationInMinutes = currentDurationInMinutes + videoDurationInMinutes;
+//   console.log(`Updated total duration in minutes: ${updatedTotalDurationInMinutes}`); // Log updated duration
+
+//     // Step 11: Update the curriculum block with the new totalDuration and add the video ID
+//     const updatedBlock = await this.curriculumBlockModel.findByIdAndUpdate(
+//       curriculumBlockId,
+//       {
+//         $push: { videos: savedVideo._id },
+//         totalDuration: this.convertMinutesToDuration(updatedTotalDurationInMinutes), // Convert back to 'mm:ss' format
+//       },
+//       { new: true, useFindAndModify: false },
+//     );
+
+//     if (!updatedBlock) {
+//       throw new NotFoundException(`Curriculum Block with ID ${curriculumBlockId} not found`);
+//     }
+
+//     // console.log('Video added to curriculum block:', updatedBlock);
+
+//     return savedVideo;
+  
+// }
+async createVideowithoutCourseId(
   createVideoDto: CreateVideoDto,
-  courseId: string,
   curriculumBlockId: string,
+  file: Express.Multer.File,
 ): Promise<Video> {
   try {
-    // const folderName = 'Courses'; // or any other dynamic name based on context
-
-    // // Step 1: Upload video to Cloudinary
-    // const uploadResult = await this.cloudinaryService.uploadVideo(
-    //   video,
-    //   folderName,
-    // );
-
-    // if (!uploadResult || !uploadResult.secure_url || !uploadResult.public_id) {
-    //   throw new InternalServerErrorException('Video upload failed');
-    // }
-
-    // console.log('Upload result:', uploadResult); // Log upload result
-
-    // Step 2: Find the course by ID
-    const course = await this.courseModel.findById(courseId).populate('courseCurriculum');
-    if (!course) {
-      throw new NotFoundException(`Course with ID ${courseId} not found`);
-    }
-
-    // Step 3: Find the curriculum block by curriculumBlockId
-    const curriculumBlock = await this.curriculumBlockModel.findById(curriculumBlockId);
+    // Step 1: Find curriculum block and get courseId
+    const curriculumBlock = await this.curriculumBlockModel
+      .findById(curriculumBlockId)
+      .populate({
+        path: 'courseCurriculum',
+        select: 'courseId',
+      })
+      .exec();
     if (!curriculumBlock) {
       throw new NotFoundException(`Curriculum Block with ID ${curriculumBlockId} not found`);
     }
 
-    // // Step 4: Ensure the curriculum block belongs to the course's curriculum
-    // if (curriculumBlock.courseCurriculum.toString() !== course.courseCurriculum.toString()) {
-    //   throw new BadRequestException(
-    //     `Curriculum Block with ID ${curriculumBlockId} does not belong to the Course's curriculum`,
-    //   );
-    // }
+    const courseId = curriculumBlock.courseCurriculum.courseId;
+    
+    // Step 2: Upload video to AWS S3
+    const uploadResult = await this.awsService.uploadVideo(file, 'courses');
+    if (!uploadResult || !uploadResult.fileUrl) {
+      throw new InternalServerErrorException('Video upload failed');
+    }
+    console.log(uploadResult);
 
-    // Step 5: Create and save the video record in MongoDB
+    // Step 3: Create and save video record
     const createdVideo = new this.videoModel({
       ...createVideoDto,
       course: courseId,
-      videoUrl: createVideoDto.secure_url,
-      publicId: createVideoDto.public_id, // Ensure this field is correctly saved
+      videoUrl: uploadResult.fileUrl,
+      fileId: uploadResult.key, // Use S3 key as fileId
     });
    
     const savedVideo = await createdVideo.save();
+    
+    // Step 4: Update course with new video
     await this.courseModel.findByIdAndUpdate(
       courseId,
-      {
-        $push: { videos: savedVideo._id },
-        // totalDuration: updatedTotalDuration,
-      },
+      { $push: { videos: savedVideo._id } },
       { new: true, useFindAndModify: false },
     );
 
-    
-    console.log('Video created and saved to DB:', savedVideo);
+    // Step 5: Calculate durations
+    const videoDurationInMinutes = this.convertDurationToMinutes(createVideoDto.duration);
+    const currentDurationInMinutes = this.convertDurationToMinutes(curriculumBlock.totalDuration || '00:00');
+    const updatedTotalDurationInMinutes = currentDurationInMinutes + videoDurationInMinutes;
 
-    
-
-  // Step 6: Calculate the video duration in minutes
-  const videoDurationInMinutes = this.convertDurationToMinutes(createVideoDto.duration);
-  console.log(`Video duration in minutes: ${videoDurationInMinutes}`); // Log video duration
-
-  // Step 7: Convert the existing totalDuration of the curriculum block to minutes
-  const currentDurationInMinutes = this.convertDurationToMinutes(curriculumBlock.totalDuration || '00:00');
-  console.log(`Current duration in minutes: ${currentDurationInMinutes}`); // Log current duration
-
-  // Step 8: Calculate the new total duration
-  const updatedTotalDurationInMinutes = currentDurationInMinutes + videoDurationInMinutes;
-  console.log(`Updated total duration in minutes: ${updatedTotalDurationInMinutes}`); // Log updated duration
-
-    // Step 11: Update the curriculum block with the new totalDuration and add the video ID
+    // Step 6: Update curriculum block
     const updatedBlock = await this.curriculumBlockModel.findByIdAndUpdate(
       curriculumBlockId,
       {
         $push: { videos: savedVideo._id },
-        totalDuration: this.convertMinutesToDuration(updatedTotalDurationInMinutes), // Convert back to 'mm:ss' format
+        totalDuration: this.convertMinutesToDuration(updatedTotalDurationInMinutes),
       },
       { new: true, useFindAndModify: false },
     );
@@ -169,8 +373,6 @@ async createVideo(
     if (!updatedBlock) {
       throw new NotFoundException(`Curriculum Block with ID ${curriculumBlockId} not found`);
     }
-
-    // console.log('Video added to curriculum block:', updatedBlock);
 
     return savedVideo;
   } catch (error) {
@@ -179,107 +381,6 @@ async createVideo(
   }
 }
 
-async createVideowithoutCourseId(
-  createVideoDto: CreateVideoDto,
-  curriculumBlockId: string,
-): Promise<Video> {
-  
-    // const folderName = 'Courses'; // or any other dynamic name based on context
-
-    // // Step 1: Upload video to Cloudinary
-    // const uploadResult = await this.cloudinaryService.uploadVideo(
-    //   video,
-    //   folderName,
-    // );
-
-    // if (!uploadResult || !uploadResult.secure_url || !uploadResult.public_id) {
-    //   throw new InternalServerErrorException('Video upload failed');
-    // }
-
-    // console.log('Upload result:', uploadResult); // Log upload result
-
-   
-
-    // Step 3: Find the curriculum block by curriculumBlockId
-    // const curriculumBlock = await this.curriculumBlockModel.findById(curriculumBlockId);
-    const curriculumBlock = await this.curriculumBlockModel
-      .findById(curriculumBlockId)
-      .populate({
-        path: 'courseCurriculum',
-        select: 'courseId', // Select only the courseId field from the CourseCurriculum
-      })
-      .exec();
-    if (!curriculumBlock) {
-      throw new NotFoundException(`Curriculum Block with ID ${curriculumBlockId} not found`);
-    }
-    console.log(curriculumBlock.courseCurriculum.courseId)
-    const courseId=curriculumBlock.courseCurriculum.courseId
-     // Step 2: Find the course by ID
-     const course = await this.courseModel.findById(courseId).populate('courseCurriculum');
-     if (!course) {
-       throw new NotFoundException(`Course with ID ${courseId} not found`);
-     }
-    // // Step 4: Ensure the curriculum block belongs to the course's curriculum
-    // if (curriculumBlock.courseCurriculum.toString() !== course.courseCurriculum.toString()) {
-    //   throw new BadRequestException(
-    //     `Curriculum Block with ID ${curriculumBlockId} does not belong to the Course's curriculum`,
-    //   );
-    // }
-
-    // Step 5: Create and save the video record in MongoDB
-    const createdVideo = new this.videoModel({
-      ...createVideoDto,
-      course: courseId,
-      videoUrl: createVideoDto.secure_url,
-      publicId: createVideoDto.public_id, // Ensure this field is correctly saved
-    });
-   
-    const savedVideo = await createdVideo.save();
-    await this.courseModel.findByIdAndUpdate(
-      courseId,
-      {
-        $push: { videos: savedVideo._id },
-        // totalDuration: updatedTotalDuration,
-      },
-      { new: true, useFindAndModify: false },
-    );
-
-    
-    console.log('Video created and saved to DB:', savedVideo);
-
-    
-
-  // Step 6: Calculate the video duration in minutes
-  const videoDurationInMinutes = this.convertDurationToMinutes(createVideoDto.duration);
-  console.log(`Video duration in minutes: ${videoDurationInMinutes}`); // Log video duration
-
-  // Step 7: Convert the existing totalDuration of the curriculum block to minutes
-  const currentDurationInMinutes = this.convertDurationToMinutes(curriculumBlock.totalDuration || '00:00');
-  console.log(`Current duration in minutes: ${currentDurationInMinutes}`); // Log current duration
-
-  // Step 8: Calculate the new total duration
-  const updatedTotalDurationInMinutes = currentDurationInMinutes + videoDurationInMinutes;
-  console.log(`Updated total duration in minutes: ${updatedTotalDurationInMinutes}`); // Log updated duration
-
-    // Step 11: Update the curriculum block with the new totalDuration and add the video ID
-    const updatedBlock = await this.curriculumBlockModel.findByIdAndUpdate(
-      curriculumBlockId,
-      {
-        $push: { videos: savedVideo._id },
-        totalDuration: this.convertMinutesToDuration(updatedTotalDurationInMinutes), // Convert back to 'mm:ss' format
-      },
-      { new: true, useFindAndModify: false },
-    );
-
-    if (!updatedBlock) {
-      throw new NotFoundException(`Curriculum Block with ID ${curriculumBlockId} not found`);
-    }
-
-    // console.log('Video added to curriculum block:', updatedBlock);
-
-    return savedVideo;
-  
-}
 // Helper Functions
 private convertDurationToMinutes(duration: string): number {
   if (!duration) {
@@ -301,6 +402,27 @@ private convertMinutesToDuration(minutes: number): string {
   const secs = totalSeconds % 60;
   return `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
 }
+// Helper Functions
+// private convertDurationToMinutes(duration: string): number {
+//   if (!duration) {
+//     return 0; // Default to 0 for undefined or empty duration
+//   }
+
+//   const parts = duration.split(':');
+//   if (parts.length !== 2) {
+//     return 0; // Return 0 if the format is invalid
+//   }
+
+//   const [minutes, seconds] = parts.map(Number);
+//   return isNaN(minutes) || isNaN(seconds) ? 0 : minutes + seconds / 60;
+// }
+
+// private convertMinutesToDuration(minutes: number): string {
+//   const totalSeconds = Math.floor(minutes * 60);
+//   const mins = Math.floor(totalSeconds / 60);
+//   const secs = totalSeconds % 60;
+//   return `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+// }
   /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   async getVideosForCourse(
     courseId: string,
@@ -404,4 +526,5 @@ private convertMinutesToDuration(minutes: number): string {
     }
     return video;
   }
+
 }

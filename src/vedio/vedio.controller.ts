@@ -1,36 +1,69 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, UseInterceptors, UploadedFile, Query, BadRequestException, InternalServerErrorException } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, UseInterceptors, UploadedFile, Query, BadRequestException, InternalServerErrorException, HttpStatus } from '@nestjs/common';
 import { VedioService } from './vedio.service';
 import { ApiOperation, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { Video } from './entities/vedio.entity';
 import { CreateVideoDto } from './dto/create.vedio.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { GetVideosDto } from './dto/get.vedio.dto';
+import { MulterOptions } from '@nestjs/platform-express/multer/interfaces/multer-options.interface';
 
-
+const multerOptions: MulterOptions = {
+  limits: {
+    fileSize: 100 * 1024 * 1024, // 100MB limit
+  },
+  fileFilter: (req, file, cb) => {
+    if (file.mimetype.startsWith('video/')) {
+      cb(null, true);
+    } else {
+      cb(new BadRequestException('Only video files are allowed'), false);
+    }
+  },
+};
 @ApiTags('vedios')
 @Controller('vedio')
 export class VedioController {
   constructor(private readonly vedioService: VedioService) {}
 
-  @Post('upload/:courseId/:curriculumBlockId')
-  // @UseInterceptors(FileInterceptor('video'))
+  // @Post('upload/:courseId/:curriculumBlockId')
+  // // @UseInterceptors(FileInterceptor('video'))
+  // async uploadVideo(
+  //   @Param('courseId') courseId: string,
+  //   @Param('curriculumBlockId') curriculumBlockId: string,
+  //   // @UploadedFile() video: Express.Multer.File,
+  //   @Body() createVideoDto: CreateVideoDto
+  // ) {
+  //   return await this.vedioService.createVideo(createVideoDto, courseId, curriculumBlockId);
+  // }
+  // @Post('upload/:courseId/:curriculumBlockId')
+  // @UseInterceptors(FileInterceptor('video', multerOptions))
+  // async uploadVideo(
+  //   @Param('courseId') courseId: string,
+  //   @Param('curriculumBlockId') curriculumBlockId: string,
+  //   @UploadedFile() file: Express.Multer.File,
+  //   @Body() createVideoDto: CreateVideoDto,
+  // ) {
+  //   return await this.vedioService.createVideo(
+  //     createVideoDto,
+  //     courseId,
+  //     curriculumBlockId,
+  //     file,
+  //   );
+  // }
+  @Post('upload/:curriculumBlockId')
+  @UseInterceptors(FileInterceptor('vedio'))
   async uploadVideo(
-    @Param('courseId') courseId: string,
     @Param('curriculumBlockId') curriculumBlockId: string,
-    // @UploadedFile() video: Express.Multer.File,
-    @Body() createVideoDto: CreateVideoDto
-  ) {
-    return await this.vedioService.createVideo(createVideoDto, courseId, curriculumBlockId);
-  }
-
-  @Post(':curriculumBlockId')
-  // @UseInterceptors(FileInterceptor('video'))
-  async uploadVideowithoutCourseId(
-    @Param('curriculumBlockId') curriculumBlockId: string,
-    // @UploadedFile() video: Express.Multer.File,
-    @Body() createVideoDto: CreateVideoDto
-  ) {
-    return await this.vedioService.createVideowithoutCourseId(createVideoDto, curriculumBlockId);
+    @Body() createVideoDto: CreateVideoDto,
+    @UploadedFile() file: Express.Multer.File,
+  ): Promise<Video> {
+    
+      return await this.vedioService.createVideowithoutCourseId(
+        createVideoDto,
+        curriculumBlockId,
+        file,
+      );
+    
+    
   }
   @Get('sorted')
   @ApiQuery({ name: 'courseId', type: String, required: true, example: '66e1a62c3eae57948828541f' })

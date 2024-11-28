@@ -8,13 +8,8 @@ export class CreateVideoDto {
   @IsString()
   @IsNotEmpty()
   description: string;
+
   @IsNotEmpty()
   @IsString()
-  readonly duration: string;  // Duration as a string in mm:ss format
-  @IsString()
-  @IsNotEmpty()
-  secure_url:string
-  @IsString()
-  @IsNotEmpty()
-  public_id:string
+  duration: string;  // Duration as a string in mm:ss format
 }
