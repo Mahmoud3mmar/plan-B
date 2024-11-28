@@ -1,5 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsString, IsDateString, IsNotEmpty } from 'class-validator';
+import { IsString, IsDateString, IsNotEmpty, IsBoolean, IsNumber, IsOptional } from 'class-validator';
+import { Transform, Type } from 'class-transformer';
 
 export class CreateEventDto {
   @ApiProperty({ description: 'Name of the event' })
@@ -12,19 +13,51 @@ export class CreateEventDto {
   @IsNotEmpty()
   eventDate: string;
 
-  @ApiProperty({ description: 'Description of the event' })
+  @ApiProperty({ description: 'Small description of the event' })
   @IsString()
   @IsNotEmpty()
-  description: string;
+  small_Description: string;
 
-  @ApiProperty({ description: 'Location of the event' })
+  @ApiProperty({ description: 'Big description of the event' })
   @IsString()
   @IsNotEmpty()
-  location: string;
+  big_Description: string;
 
-  @ApiProperty({ description: 'Name of the speaker' })
+  @ApiProperty({ description: 'Location name of the event' })
   @IsString()
   @IsNotEmpty()
-  speakerName: string;
+  location_Name: string;
 
+  @ApiProperty({ description: 'Latitude of the event location' })
+  @IsString()
+  @IsNotEmpty()
+  location_Lat: string;
+
+  @ApiProperty({ description: 'Longitude of the event location' })
+  @IsString()
+  @IsNotEmpty()
+  location_Long: string;
+
+  @ApiProperty({ description: 'Indicates if the event is paid', type: Boolean })
+  @Transform(({ value }) => {
+    if (value === 'true') return true;
+    if (value === 'false') return false;
+    return value;
+  })
+  @IsBoolean()
+  isPaid: boolean;
+
+  @ApiProperty({ description: 'Price of the event', required: false, type: Number })
+  @IsOptional()
+  @Transform(({ value }) => {
+    if (value === '') return undefined;
+    return Number(value);
+  })
+  @IsNumber()
+  price?: number;
+
+  @ApiProperty({ description: 'URL to the event\'s thumbnail image', required: false })
+  @IsOptional()
+  @IsString()
+  image?: string;
 }

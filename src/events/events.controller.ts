@@ -32,6 +32,8 @@ import { Events } from './entities/event.entity';
 import { FileInterceptor, FilesInterceptor } from '@nestjs/platform-express';
 import { PaginateDto } from './dto/get.events.dto';
 import { ObjectIdValidationPipe } from './pipes/object-id-validation.pipe';
+import { AddSpeakerDto } from './dto/add-speakers.dto';
+import { AgendaDto } from './dto/agenda.dto';
 
 @ApiTags('events')
 @Controller('events')
@@ -189,4 +191,38 @@ export class EventsController {
       }
     }
   }
+  @Post(':eventId/speaker')
+  @ApiOperation({ summary: 'Add a speaker to an event' })
+  @ApiResponse({ status: 200, description: 'Speaker added successfully', type: Events })
+  @ApiResponse({ status: 404, description: 'Event not found' })
+  @ApiResponse({ status: 400, description: 'Bad Request' })
+  @ApiResponse({ status: 500, description: 'Failed to add speaker to event' })
+  @UseInterceptors(FileInterceptor('image')) // Use FileInterceptor to handle image upload
+  async addSpeaker(
+    @Param('eventId') eventId: string,
+    @Body() speaker: AddSpeakerDto,
+    @UploadedFile() image: Express.Multer.File // Accept the uploaded image
+  ): Promise<Events> {
+    // Check if an image was provided
+    if (!image) {
+      throw new BadRequestException('Image is required');
+    }
+
+    // Call the service method to add the speaker
+    return this.eventsService.addSpeakerToEvent(eventId, speaker, image);
+  }
+
+  @Post(':eventId/agenda')
+  @ApiOperation({ summary: 'Add an agenda item to an event' })
+  @ApiResponse({ status: 200, description: 'Agenda item added successfully', type: Events })
+  @ApiResponse({ status: 404, description: 'Event not found' })
+  @ApiResponse({ status: 400, description: 'Bad Request' })
+  @ApiResponse({ status: 500, description: 'Failed to add agenda to event' })
+  async addAgenda(
+    @Param('eventId') eventId: string,
+    @Body() agendaDto: AgendaDto
+  ): Promise<Events> {
+    return this.eventsService.addAgendaToEvent(eventId, agendaDto);
+  }
+
 }
