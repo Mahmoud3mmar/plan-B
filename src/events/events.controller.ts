@@ -28,7 +28,7 @@ import {
   ApiResponse,
   ApiTags,
 } from '@nestjs/swagger';
-import { Events } from './entities/event.entity';
+import { Agenda, Events, Speaker } from './entities/event.entity';
 import { FileInterceptor, FilesInterceptor } from '@nestjs/platform-express';
 import { PaginateDto } from './dto/get.events.dto';
 import { ObjectIdValidationPipe } from './pipes/object-id-validation.pipe';
@@ -130,30 +130,35 @@ export class EventsController {
 
   @Put(':id')
   @ApiOperation({ summary: 'Update an event' })
+  @ApiConsumes('multipart/form-data')
+  @ApiBody({
+    description: 'Event update details and optional image',
+    type: UpdateEventDto,
+  })
   @ApiResponse({
     status: 200,
     description: 'Event updated successfully',
-    type: Event,
+    type: Events,
+  })
+  @ApiResponse({ 
+    status: 400, 
+    description: 'Bad Request',
+    schema: { 
+      example: { 
+        message: 'Validation error messages' 
+      } 
+    },
   })
   @ApiResponse({ status: 404, description: 'Event not found' })
-  @ApiResponse({ status: 500, description: 'Failed to update event' })
-  @ApiConsumes('multipart/form-data')
-  @UseInterceptors(FileInterceptor('image')) // Accept a single file
+  @ApiResponse({ status: 500, description: 'Internal Server Error' })
+  @UseInterceptors(FileInterceptor('image'))
   async updateEvent(
     @Param('id') eventId: string,
     @Body() updateEventDto: UpdateEventDto,
-    @UploadedFile() thumbnailImageFile: Express.Multer.File, // Accept only one thumbnail image file
+    @UploadedFile() image?: Express.Multer.File,
   ): Promise<Events> {
-    // Check if a thumbnail image file was provided
-    if (!thumbnailImageFile) {
-      throw new BadRequestException('Thumbnail image is required');
-    }
-
-    return this.eventsService.updateEvent(
-      eventId,
-      updateEventDto,
-      thumbnailImageFile,
-    );
+    // Image is now optional for updates
+    return this.eventsService.updateEvent(eventId, updateEventDto, image);
   }
   ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -223,6 +228,54 @@ export class EventsController {
     @Body() agendaDto: AgendaDto
   ): Promise<Events> {
     return this.eventsService.addAgendaToEvent(eventId, agendaDto);
+  }
+
+  @Delete(':eventId/speaker/:speakerId')
+  @ApiOperation({ summary: 'Remove a speaker from an event' })
+  @ApiResponse({ status: 200, description: 'Speaker removed successfully', type: Events })
+  @ApiResponse({ status: 404, description: 'Event or speaker not found' })
+  @ApiResponse({ status: 500, description: 'Failed to remove speaker from event' })
+  async removeSpeaker(
+    @Param('eventId') eventId: string,
+    @Param('speakerId') speakerId: string
+  ): Promise<Events> {
+    return this.eventsService.removeSpeakerFromEvent(eventId, speakerId);
+  }
+
+  @Delete(':eventId/agenda/:agendaId')
+  @ApiOperation({ summary: 'Remove an agenda item from an event' })
+  @ApiResponse({ status: 200, description: 'Agenda item removed successfully', type: Events })
+  @ApiResponse({ status: 404, description: 'Event or agenda item not found' })
+  @ApiResponse({ status: 500, description: 'Failed to remove agenda item from event' })
+  async removeAgenda(
+    @Param('eventId') eventId: string,
+    @Param('agendaId') agendaId: string
+  ): Promise<Events> {
+    return this.eventsService.removeAgendaFromEvent(eventId, agendaId);
+  }
+
+  @Get(':eventId/speaker/:speakerId')
+  @ApiOperation({ summary: 'Get a speaker by ID' })
+  @ApiResponse({ status: 200, description: 'Speaker found', type: Speaker })
+  @ApiResponse({ status: 404, description: 'Event or speaker not found' })
+  @ApiResponse({ status: 500, description: 'Failed to fetch speaker' })
+  async getSpeaker(
+    @Param('eventId') eventId: string,
+    @Param('speakerId') speakerId: string
+  ): Promise<Speaker> {
+    return this.eventsService.getSpeakerById(eventId, speakerId);
+  }
+
+  @Get(':eventId/agenda/:agendaId')
+  @ApiOperation({ summary: 'Get an agenda item by ID' })
+  @ApiResponse({ status: 200, description: 'Agenda item found', type: Agenda })
+  @ApiResponse({ status: 404, description: 'Event or agenda item not found' })
+  @ApiResponse({ status: 500, description: 'Failed to fetch agenda item' })
+  async getAgendaItem(
+    @Param('eventId') eventId: string,
+    @Param('agendaId') agendaId: string
+  ): Promise<Agenda> {
+    return this.eventsService.getAgendaById(eventId, agendaId);
   }
 
 }

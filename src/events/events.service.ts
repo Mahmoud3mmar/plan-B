@@ -5,7 +5,7 @@ import {
   BadRequestException,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import { Model, Types } from 'mongoose';
 import { CreateEventDto } from './dto/create.event.dto';
 import { Agenda, Events, Speaker } from './entities/event.entity';
 import { UpdateEvent } from 'typeorm';
@@ -134,23 +134,23 @@ export class EventsService {
       if (!image) {
         throw new BadRequestException('Speaker image is required');
       }
-
+  
       // Find the existing event
       const event = await this.eventModel.findById(eventId).exec();
       if (!event) {
         throw new NotFoundException(`Event with ID ${eventId} not found`);
       }
-
+  
       // Create a Set to avoid duplicate speakers based on name
       const existingSpeakerNames = new Set(event.speakers.map((s) => s.name));
-
+  
       // Check for duplicate speaker
       if (existingSpeakerNames.has(speakerDto.name)) {
         throw new BadRequestException(
           `Speaker with name "${speakerDto.name}" already exists in the event.`,
         );
       }
-
+  
       try {
         // Upload the image to Cloudinary
         const thumbnailFolderName = 'Speakers-Images';
@@ -158,19 +158,21 @@ export class EventsService {
           image,
           thumbnailFolderName,
         );
-
-        // Create a new Speaker instance
-        const speaker = new Speaker();
-        speaker.name = speakerDto.name;
-        speaker.image = uploadResult.secure_url;
-        speaker.about = speakerDto.about;
-
+  
+        // Create a new Speaker instance with ObjectId
+        const speaker = {
+          _id: new Types.ObjectId(),
+          name: speakerDto.name,
+          image: uploadResult.secure_url,
+          about: speakerDto.about,
+        };
+  
         // Add the new speaker to the existing speakers array
         event.speakers.push(speaker);
-
+  
         // Save the updated event
         const updatedEvent = await event.save();
-
+  
         console.log('Speaker added successfully:', updatedEvent);
         return updatedEvent;
       } catch (uploadError) {
@@ -180,12 +182,12 @@ export class EventsService {
     } catch (error) {
       // Log the original error for debugging
       console.error('Error adding speaker to event:', error.message || error);
-
+  
       // Re-throw BadRequestException and NotFoundException as is
       if (error instanceof BadRequestException || error instanceof NotFoundException) {
         throw error;
       }
-
+  
       // Handle mongoose ValidationError
       if (error.name === 'ValidationError') {
         const errorMessages = Object.values(error.errors).map(
@@ -193,7 +195,7 @@ export class EventsService {
         );
         throw new BadRequestException(errorMessages);
       }
-
+  
       // For any other error, throw InternalServerErrorException
       throw new InternalServerErrorException('Failed to add speaker to event');
     }
@@ -206,27 +208,38 @@ export class EventsService {
     agendaDto: AgendaDto,
   ): Promise<Events> {
     try {
-      // Find the existing event
       const event = await this.eventModel.findById(eventId).exec();
       if (!event) {
         throw new NotFoundException(`Event with ID ${eventId} not found`);
       }
 
+      // Check for duplicate agenda title
+      const existingAgendaTitles = new Set(event.agenda.map((a) => a.title));
+      if (existingAgendaTitles.has(agendaDto.title)) {
+        throw new BadRequestException(
+          `Agenda item with title "${agendaDto.title}" already exists in the event.`,
+        );
+      }
+
       // Create a new Agenda instance
-      const agendaItem = new Agenda();
-      agendaItem.title = agendaDto.title;
-      agendaItem.time = agendaDto.time;
+      const agendaItem = {
+        _id: new Types.ObjectId(),
+        title: agendaDto.title,
+        time: agendaDto.time,
+      };
 
       // Add the new agenda item to the existing agenda array
       event.agenda.push(agendaItem);
 
       // Save the updated event
       const updatedEvent = await event.save();
-
       console.log('Agenda item added successfully:', updatedEvent);
       return updatedEvent;
     } catch (error) {
       console.error('Error adding agenda to event:', error.message || error);
+      if (error instanceof NotFoundException || error instanceof BadRequestException) {
+        throw error;
+      }
       throw new InternalServerErrorException('Failed to add agenda to event');
     }
   }
@@ -279,7 +292,7 @@ export class EventsService {
   async updateEvent(
     eventId: string,
     updateEventDto: UpdateEventDto,
-    thumbnailImageFile: Express.Multer.File, // Only accept the thumbnail image file
+    image?: Express.Multer.File,
   ): Promise<Events> {
     try {
       // Find the existing event
@@ -288,20 +301,36 @@ export class EventsService {
         throw new NotFoundException(`Event with ID ${eventId} not found`);
       }
 
-      // Upload the thumbnail image if provided
-      const thumbnailImageUploadResult =
-        await this.CloudinaryService.uploadImage(
-          thumbnailImageFile,
-          'Events-Thumbnail',
-        );
-      updateEventDto.thumbnailImage = thumbnailImageUploadResult.secure_url; // Update the DTO with the new URL
+      // Create update data only with provided fields
+      const updateData: Partial<Events> = {};
 
-      // Update the event with the provided details
+      // Only add fields that are provided in the DTO
+      Object.keys(updateEventDto).forEach(key => {
+        if (updateEventDto[key] !== undefined) {
+          updateData[key] = updateEventDto[key];
+        }
+      });
+
+      // Validate event date if it's being updated
+      if (updateEventDto.eventDate) {
+        this.validateEventDate(updateEventDto.eventDate);
+      }
+
+      // Upload and update image only if a new one is provided
+      if (image) {
+        const thumbnailImageUploadResult = await this.CloudinaryService.uploadImage(
+          image,
+          'Events-Thumbnail'
+        );
+        updateData.thumbnailImage = thumbnailImageUploadResult.secure_url;
+      }
+
+      // Update the event with only the provided details
       const updatedEvent = await this.eventModel
         .findByIdAndUpdate(
           eventId,
-          { $set: updateEventDto },
-          { new: true, useFindAndModify: false },
+          { $set: updateData },
+          { new: true, runValidators: true }
         )
         .exec();
 
@@ -309,9 +338,22 @@ export class EventsService {
         throw new NotFoundException(`Event with ID ${eventId} not found`);
       }
 
+      console.log('Event updated successfully:', updatedEvent);
       return updatedEvent;
     } catch (error) {
       console.error('Error updating event:', error.message || error);
+
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
+
+      if (error.name === 'ValidationError') {
+        const errorMessages = Object.values(error.errors).map(
+          (err: any) => err.message
+        );
+        throw new BadRequestException(errorMessages);
+      }
+
       throw new InternalServerErrorException('Failed to update event');
     }
   }
@@ -379,6 +421,108 @@ export class EventsService {
     if (inputDate < currentDate) {
       // Throw BadRequestException directly
       throw new BadRequestException('Event date must be in the future');
+    }
+  }
+
+  async removeSpeakerFromEvent(eventId: string, speakerId: string): Promise<Events> {
+    try {
+      const updatedEvent = await this.eventModel.findByIdAndUpdate(
+        eventId,
+        {
+          $pull: {
+            speakers: { _id: new Types.ObjectId(speakerId) }
+          }
+        },
+        { new: true }
+      ).exec();
+
+      if (!updatedEvent) {
+        throw new NotFoundException(`Event with ID ${eventId} not found`);
+      }
+
+      return updatedEvent;
+    } catch (error) {
+      console.error('Error removing speaker from event:', error.message || error);
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
+      throw new InternalServerErrorException('Failed to remove speaker from event');
+    }
+  }
+
+  async removeAgendaFromEvent(eventId: string, agendaId: string): Promise<Events> {
+    try {
+      const updatedEvent = await this.eventModel.findByIdAndUpdate(
+        eventId,
+        {
+          $pull: {
+            agenda: { _id: new Types.ObjectId(agendaId) }
+          }
+        },
+        { new: true }
+      ).exec();
+
+      if (!updatedEvent) {
+        throw new NotFoundException(`Event with ID ${eventId} not found`);
+      }
+
+      return updatedEvent;
+    } catch (error) {
+      console.error('Error removing agenda from event:', error.message || error);
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
+      throw new InternalServerErrorException('Failed to remove agenda from event');
+    }
+  }
+
+  async getSpeakerById(eventId: string, speakerId: string): Promise<Speaker> {
+    try {
+      const event = await this.eventModel.findById(eventId).exec();
+      if (!event) {
+        throw new NotFoundException(`Event with ID ${eventId} not found`);
+      }
+
+      const speaker = event.speakers.find(
+        (s) => s._id.toString() === speakerId
+      );
+
+      if (!speaker) {
+        throw new NotFoundException(`Speaker with ID ${speakerId} not found in event`);
+      }
+
+      return speaker;
+    } catch (error) {
+      console.error('Error fetching speaker:', error.message || error);
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
+      throw new InternalServerErrorException('Failed to fetch speaker');
+    }
+  }
+
+  async getAgendaById(eventId: string, agendaId: string): Promise<Agenda> {
+    try {
+      const event = await this.eventModel.findById(eventId).exec();
+      if (!event) {
+        throw new NotFoundException(`Event with ID ${eventId} not found`);
+      }
+
+      const agendaItem = event.agenda.find(
+        (a) => a._id.toString() === agendaId
+      );
+
+      if (!agendaItem) {
+        throw new NotFoundException(`Agenda item with ID ${agendaId} not found in event`);
+      }
+
+      return agendaItem;
+    } catch (error) {
+      console.error('Error fetching agenda item:', error.message || error);
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
+      throw new InternalServerErrorException('Failed to fetch agenda item');
     }
   }
 }

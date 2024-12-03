@@ -1,9 +1,12 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { Document } from 'mongoose';
+import { Document, Types } from 'mongoose';
 
 
 // Define the Speaker class within the same file
  export class Speaker {
+  @Prop({ type: Types.ObjectId, required: true, default: () => new Types.ObjectId() })
+  _id: Types.ObjectId;
+
   @Prop({ required: true })
   name: string;
 
@@ -16,12 +19,14 @@ import { Document } from 'mongoose';
 
 
 export class Agenda {
+  @Prop({ type: Types.ObjectId, required: true, default: () => new Types.ObjectId() })
+  _id: Types.ObjectId;
+
   @Prop({ required: true })
   title: string;
 
   @Prop({ required: true })
-  time: string; 
-
+  time: string;
 } 
 
 @Schema({ timestamps: true }) // Adds createdAt and updatedAt fields automatically

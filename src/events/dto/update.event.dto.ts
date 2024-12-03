@@ -1,39 +1,65 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsString, IsDateString, IsOptional } from 'class-validator';
+import { IsString, IsDateString, IsNotEmpty, IsBoolean, IsNumber, IsOptional } from 'class-validator';
+import { Transform } from 'class-transformer';
 
 export class UpdateEventDto {
   @ApiProperty({ description: 'Name of the event', required: false })
-  @IsString()
   @IsOptional()
+  @IsString()
+  @IsNotEmpty()
   eventName?: string;
 
   @ApiProperty({ description: 'Date of the event', required: false })
-  @IsDateString()
   @IsOptional()
+  @IsDateString()
   eventDate?: string;
 
-  @ApiProperty({ description: 'Description of the event', required: false })
-  @IsString()
+  @ApiProperty({ description: 'Small description of the event', required: false })
   @IsOptional()
-  description?: string;
+  @IsString()
+  @IsNotEmpty()
+  small_Description?: string;
 
-  @ApiProperty({ description: 'Location of the event', required: false })
-  @IsString()
+  @ApiProperty({ description: 'Big description of the event', required: false })
   @IsOptional()
-  location?: string;
+  @IsString()
+  @IsNotEmpty()
+  big_Description?: string;
 
-  @ApiProperty({ description: 'Name of the speaker', required: false })
-  @IsString()
+  @ApiProperty({ description: 'Location name of the event', required: false })
   @IsOptional()
-  speakerName?: string;
+  @IsString()
+  @IsNotEmpty()
+  location_Name?: string;
 
-  @ApiProperty({ description: 'Image URL of the speaker', required: false })
-  @IsString()
+  @ApiProperty({ description: 'Latitude of the event location', required: false })
   @IsOptional()
-  speakerImage?: string;
+  @IsString()
+  @IsNotEmpty()
+  location_Lat?: string;
 
-  @ApiProperty({ description: 'Image URL of the thumbnail', required: false })
-  @IsString()
+  @ApiProperty({ description: 'Longitude of the event location', required: false })
   @IsOptional()
-  thumbnailImage?: string;
+  @IsString()
+  @IsNotEmpty()
+  location_Long?: string;
+
+  @ApiProperty({ description: 'Indicates if the event is paid', required: false })
+  @IsOptional()
+  @Transform(({ value }) => {
+    if (value === 'true') return true;
+    if (value === 'false') return false;
+    return value;
+  })
+  @IsBoolean()
+  isPaid?: boolean;
+
+  @ApiProperty({ description: 'Price of the event', required: false })
+  @IsOptional()
+  @Transform(({ value }) => {
+    if (value === '') return undefined;
+    return Number(value);
+  })
+  @IsNumber()
+  price?: number;
 }
