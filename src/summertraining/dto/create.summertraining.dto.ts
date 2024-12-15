@@ -1,21 +1,17 @@
-import { IsNotEmpty, IsString, IsEnum, IsOptional, IsArray, IsMongoId, IsNumber } from 'class-validator';
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { Level } from '../../course/utils/levels.enum';
+import { ApiProperty } from '@nestjs/swagger';
+import { IsString, IsNotEmpty } from 'class-validator';
 
 export class CreateSummerTrainingDto {
-  @ApiProperty({
-    description: 'Name of the summer training',
-    example: 'Advanced JavaScript Workshop',
-  })
-  @IsNotEmpty()
+  @ApiProperty({ description: 'Title of the summer training' })
   @IsString()
+  @IsNotEmpty()
   name: string;
 
+  @ApiProperty({ description: 'Description of the summer training' })
+  @IsString()
+  @IsNotEmpty()
+  description: string;
 
-
-
-  // @IsString()
-  // image: string; // This will hold the URL/path of the image
-  
-
+  @ApiProperty({ description: 'Image file for the summer training', type: 'string', format: 'binary' })
+  image?: Express.Multer.File; // Optional if you want to handle it in the controller
 }

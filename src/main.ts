@@ -26,6 +26,7 @@ async function bootstrap() {
     .setTitle("Plan-B-API")
     .setDescription("the description of the api")
     .setVersion("1.0")
+    .addBearerAuth()
     .build();
   // const Document= SwaggerModule.createDocument(app,config) 
   // SwaggerModule.setup('/DOC',app,Document)

@@ -2,7 +2,7 @@ import { Controller, Get, Post, Body, Patch, Param, Delete, ParseIntPipe, Query,
 import { CourseService } from './course.service';
 import { CreateCourseDto } from './dto/create.course.dto';
 import { UpdateCourseDto } from './dto/update.course.dto';
-import { ApiBody, ApiOperation, ApiParam, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiBody, ApiOperation, ApiParam, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { Course } from './entities/course.entity';
 import { Roles } from '../auth/Roles.decorator';
 import { Role } from '../user/common utils/Role.enum';
@@ -11,7 +11,7 @@ import { RolesGuard } from '../auth/guards/role.guards';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { GetCoursesDto } from './dto/get.courses.dto';
 import { PaginationDto } from '../review/dto/get.all.reviews.paginated.dto';
-
+@ApiBearerAuth()
 @ApiTags('course')
 @Controller('course')
 export class CourseController {

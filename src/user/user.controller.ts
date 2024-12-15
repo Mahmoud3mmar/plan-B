@@ -4,7 +4,6 @@ import { AccessTokenGuard } from '../auth/guards/accessToken.guard';
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth, ApiBody } from '@nestjs/swagger';
 import { createInstructorDto } from './dto/create.instructor.dto';
 import { Instructor } from '../instructor/entities/instructor.entity';
-
 @ApiTags('user')
 @ApiBearerAuth() // Indicates that the endpoint requires a Bearer token for authorization
 @Controller('user')

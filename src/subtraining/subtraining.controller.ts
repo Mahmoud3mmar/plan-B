@@ -1,6 +1,6 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseInterceptors, UploadedFile, Query, NotFoundException, BadRequestException, Put, InternalServerErrorException, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseInterceptors, UploadedFile, Query, NotFoundException, BadRequestException, Put, InternalServerErrorException, UseGuards} from '@nestjs/common';
 import { SubtrainingService } from './subtraining.service';
-import { ApiConsumes, ApiOperation, ApiParam, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiBody, ApiConsumes, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { CreateSubTrainingDto } from './dto/create.subtraining.dto';
 import { SubTrainingsPaginateDto } from './dto/get.sub.trainings.dto';
@@ -10,7 +10,8 @@ import { RolesGuard } from '../auth/guards/role.guards';
 import { Roles } from '../auth/Roles.decorator';
 import { Role } from '../user/common utils/Role.enum';
 import { CreateOfferDto } from './dto/create-offer.dto';
-
+import { TopicDto } from './dto/add.topic.dto';
+@ApiBearerAuth()
 @ApiTags('subTrainings')
 @Controller('sub/training')
 export class SubtrainingController {
@@ -18,12 +19,14 @@ export class SubtrainingController {
 
 
   @Post()
-  // @UseGuards(AccessTokenGuard,RolesGuard)
-  // @Roles(Role.ADMIN)  
+  @UseGuards(AccessTokenGuard,RolesGuard)
+  @Roles(Role.ADMIN)  
   @ApiOperation({ summary: 'Create a new sub-training' })
-  @ApiResponse({ status: 201, description: 'The sub-training has been successfully created.' })
-  @ApiResponse({ status: 400, description: 'Bad request.' })
-  @ApiResponse({ status: 500, description: 'Internal server error.' })
+  @ApiConsumes('multipart/form-data')
+  @ApiBody({
+    description: 'Create a new sub-summer training',
+    type: CreateSubTrainingDto,
+  })
   @UseInterceptors(FileInterceptor('image')) // Ensure 'image' matches the field name in your form-data
   async create(
     @Body() createSubTrainingDto: CreateSubTrainingDto,
@@ -107,5 +110,45 @@ export class SubtrainingController {
   @Roles(Role.ADMIN)  
   async deleteSubTraining(@Param('id') id: string): Promise<void> {
     await this.subtrainingService.deleteSubTraining(id);
+  }
+
+  @Post(':id/topic')
+  @UseGuards(AccessTokenGuard, RolesGuard)
+  @Roles(Role.ADMIN)
+  @ApiOperation({ summary: 'Add a topic to a sub-training' })
+  @ApiResponse({ status: 201, description: 'Topic added successfully.' })
+  @ApiResponse({ status: 400, description: 'Bad request.' })
+  @ApiResponse({ status: 404, description: 'Sub-training not found.' })
+  async addTopic(
+    @Param('id') subtrainingId: string,
+    @Body() topicDto: TopicDto,
+  ) {
+    return await this.subtrainingService.addTopicToEvent(subtrainingId, topicDto);
+  }
+
+  @Delete(':id/topic/:topicId')
+  @UseGuards(AccessTokenGuard, RolesGuard)
+  @Roles(Role.ADMIN)
+  @ApiOperation({ summary: 'Remove a topic from a sub-training' })
+  @ApiResponse({ status: 200, description: 'Topic removed successfully.' })
+  @ApiResponse({ status: 404, description: 'Sub-training or topic not found.' })
+  async removeTopic(
+    @Param('id') subtrainingId: string,
+    @Param('topicId') topicId: string,
+  ) {
+    return await this.subtrainingService.removeTopicFromSubTraining(subtrainingId, topicId);
+  }
+
+  @Get(':id/topic/:topicId')
+  @UseGuards(AccessTokenGuard, RolesGuard)
+  @Roles(Role.ADMIN)
+  @ApiOperation({ summary: 'Get a topic by ID' })
+  @ApiResponse({ status: 200, description: 'Topic found.' })
+  @ApiResponse({ status: 404, description: 'Sub-training or topic not found.' })
+  async getTopic(
+    @Param('id') subtrainingId: string,
+    @Param('topicId') topicId: string,
+  ) {
+    return await this.subtrainingService.getTopicById(subtrainingId, topicId);
   }
 }

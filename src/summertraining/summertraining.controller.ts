@@ -1,6 +1,7 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Query, UseInterceptors, UploadedFile, Put, HttpStatus, HttpCode, UseGuards, BadRequestException } from '@nestjs/common';
+import { Controller,  Request,
+  Get, Post, Body, Patch, Param, Delete, Query, UseInterceptors, UploadedFile, Put, HttpStatus, HttpCode, UseGuards, BadRequestException } from '@nestjs/common';
 import { SummertrainingService } from './summertraining.service';
-import { ApiBody, ApiConsumes, ApiOperation, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiBody, ApiConsumes, ApiOperation, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { CreateSummerTrainingDto } from './dto/create.summertraining.dto';
 import { SummerTraining } from './entities/summertraining.entity';
 import { FileInterceptor } from '@nestjs/platform-express';
@@ -10,15 +11,15 @@ import { AccessTokenGuard } from '../auth/guards/accessToken.guard';
 import { RolesGuard } from '../auth/guards/role.guards';
 import { Roles } from '../auth/Roles.decorator';
 import { Role } from '../user/common utils/Role.enum';
-
+@ApiBearerAuth()
 @ApiTags('summertraining')
 @Controller('summer/training')
 export class SummertrainingController {
   constructor(private readonly summertrainingService: SummertrainingService) {}
 
   @Post()
-  // @UseGuards(AccessTokenGuard,RolesGuard)
-  // @Roles(Role.ADMIN)  
+  @UseGuards(AccessTokenGuard,RolesGuard)
+  @Roles(Role.ADMIN)  
   @ApiConsumes('multipart/form-data')
   @ApiBody({
     description: 'Create a new summer training',
@@ -26,13 +27,15 @@ export class SummertrainingController {
   })
   @UseInterceptors(FileInterceptor('image')) // Use Cloudinary Multer
   async create(
+    @Request() req,
     @Body() createSummerTrainingDto: CreateSummerTrainingDto,
     @UploadedFile() image: Express.Multer.File, // Handle uploaded file
   ) {
     if (!image) {
       throw new BadRequestException('Image file is required');
     }
-
+    const userId = req.user; // Assuming `sub` contains the user ID
+    console.log(userId)
     // // Upload the file to Cloudinary
     // const uploadResult = await this.cloudinaryService.uploadImage(file);
     // if (!uploadResult || !uploadResult.secure_url) {

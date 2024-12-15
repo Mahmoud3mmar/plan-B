@@ -2,10 +2,10 @@ import { Controller, Get, Post, Body, Patch, Param, Delete, BadRequestException,
 import { CurriculumBlockService } from './curriculum.block.service';
 import { CreateCurriculumBlockDto } from './dto/create.curriculum.block.dto';
 import { UpdateCurriculumBlockDto } from './dto/update-curriculum-block.dto';
-import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { CurriculumBlock } from './entities/curriculum.block.entity';
 
-
+@ApiBearerAuth()
 @ApiTags('curriculum-block')
 @Controller('curriculum/block')
 export class CurriculumBlockController {

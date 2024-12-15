@@ -9,10 +9,10 @@ export class CreateSubTrainingDto {
   @IsNotEmpty()
   @IsString()
   name: string;
-
-  @ApiProperty({ description: 'ID of the instructor for the sub-training' })
+  @ApiProperty({ description: 'ID of the instructor for the sub-training', type: String })
   @IsNotEmpty()
-  instructor: Types.ObjectId; // Reference to the instructor teaching the sub-training
+  @Transform(({ value }) => new Types.ObjectId(value))
+  instructor: Types.ObjectId;
 
   @ApiProperty({ description: 'Duration of the sub-training (e.g., 4 weeks, 2 months)' })
   @IsNotEmpty()
@@ -24,11 +24,12 @@ export class CreateSubTrainingDto {
   @Transform(({ value }) => Number(value))
   @IsNumber()
   numberOfLessons: number;
-
+  
   @ApiProperty({ description: 'Level of the sub-training', enum: trainingLevel })
   @IsNotEmpty()
   @IsEnum(trainingLevel)
   level: trainingLevel;
+  
 
   @ApiProperty({ description: 'Is the sub-training paid or not?' })
   @IsNotEmpty()
@@ -74,6 +75,11 @@ export class CreateSubTrainingDto {
   @IsString()
   location_Long: string; // Location longitude
 
+  @ApiProperty({description: 'speciality of the sub-training', required: true })
+  @IsNotEmpty()
+  @IsString()
+  speciality: string; // Location longitude
+
   @ApiProperty({ description: 'Total number of seats available for the sub-training', required: true })
   @IsNotEmpty()
   @Transform(({ value }) => Number(value))
@@ -85,27 +91,51 @@ export class CreateSubTrainingDto {
   @IsEnum(['online', 'offline'])
   type: 'online' | 'offline'; // Training mode
 
+  // @ApiProperty({ 
+  //   description: 'Topics covered in the training (comma-separated)',
+  //   example: 'HTML,CSS,JavaScript'
+  // })
+  // @IsNotEmpty()
+  // @Transform(({ value }) => {
+  //   // Handle comma-separated string
+  //   if (typeof value === 'string') {
+  //     return value.split(',').map(topic => topic.trim());
+  //   }
+  //   // Handle array
+  //   if (Array.isArray(value)) {
+  //     return value;
+  //   }
+  //   return value;
+  // })
+  // @IsArray()
+  // @IsString({ each: true })
+  // topics: string[];
+
   @ApiProperty({ 
-    description: 'Topics covered in the training (comma-separated)',
-    example: 'HTML,CSS,JavaScript'
+    description: 'Topics covered in the training. Accepts a comma-separated string or an array of strings.',
+    example: ['HTML', 'CSS', 'JavaScript'], // Use array example to avoid ambiguity
+    type: [String], // Explicitly declare type as an array of strings
   })
   @IsNotEmpty()
   @Transform(({ value }) => {
-    // Handle comma-separated string
     if (typeof value === 'string') {
-      return value.split(',').map(topic => topic.trim());
+      return value.split(',').map(topic => topic.trim()); // Convert comma-separated string to array
     }
-    // Handle array
     if (Array.isArray(value)) {
-      return value;
+      return value; // Return as-is if already an array
     }
-    return value;
+    return []; // Default to empty array for invalid inputs
   })
   @IsArray()
   @IsString({ each: true })
   topics: string[];
-
-  @ApiProperty({ description: 'ID of the summer training the sub-training belongs to' })
+  
+  @ApiProperty({ description: 'ID of the summer training the sub-training belongs to', type: String })
   @IsNotEmpty()
-  summerTraining: Types.ObjectId; // Reference to the SummerTrainingEntity
+  @Transform(({ value }) => new Types.ObjectId(value))
+  summerTraining: Types.ObjectId;
+
+  
+  @ApiProperty({ description: 'Image file for the summer training', type: 'string', format: 'binary' })
+  image?: Express.Multer.File; // Optional if you want to handle it in the controller
 }

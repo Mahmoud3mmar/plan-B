@@ -21,6 +21,7 @@ import { EventsService } from './events.service';
 import { CreateEventDto } from './dto/create.event.dto';
 import { UpdateEventDto } from './dto/update.event.dto';
 import {
+  ApiBearerAuth,
   ApiBody,
   ApiConsumes,
   ApiOperation,
@@ -34,7 +35,7 @@ import { PaginateDto } from './dto/get.events.dto';
 import { ObjectIdValidationPipe } from './pipes/object-id-validation.pipe';
 import { AddSpeakerDto } from './dto/add-speakers.dto';
 import { AgendaDto } from './dto/agenda.dto';
-
+@ApiBearerAuth()
 @ApiTags('events')
 @Controller('events')
 export class EventsController {

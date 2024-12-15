@@ -2,12 +2,14 @@ import { Injectable, NotFoundException, BadRequestException, InternalServerError
 import { CreateSubTrainingDto } from './dto/create.subtraining.dto';
 import { SubTrainingEntity } from './entities/subtraining.entity';
 import { SummerTraining } from '../summertraining/entities/summertraining.entity';
-import { Model } from 'mongoose';
+import { Model, Types } from 'mongoose';
 import { InjectModel } from '@nestjs/mongoose';
 import { CloudinaryService } from '../cloudinary/cloudinary.service';
 import { Instructor } from '../instructor/entities/instructor.entity';
 import { SubTrainingsPaginateDto } from './dto/get.sub.trainings.dto';
 import { CreateOfferDto } from './dto/create-offer.dto';
+import { AgendaDto } from 'src/events/dto/agenda.dto';
+import { TopicDto } from './dto/add.topic.dto';
 
 @Injectable()
 export class SubtrainingService {
@@ -212,6 +214,101 @@ export class SubtrainingService {
       },
       { new: true }
     );
+  }
+
+
+  
+  async addTopicToEvent(
+    subtrainingId: string,
+    TopicDto: TopicDto,
+  ): Promise<any> {
+    try {
+      const subtraining = await this.subTrainingModel.findById(subtrainingId).exec();
+      if (!subtraining) {
+        throw new NotFoundException(`subtraining with ID ${subtrainingId} not found`);
+      }
+
+      // Check for duplicate agenda title
+      const existingTopicTitles = new Set(subtraining.topic.map((a) => a.title));
+      if (existingTopicTitles.has(TopicDto.title)) {
+        throw new BadRequestException(
+          `topic item with title "${TopicDto.title}" already exists in the sub training.`,
+        );
+      }
+
+      // Create a new Agenda instance
+      const topicItem = {
+        _id: new Types.ObjectId(),
+        title: TopicDto.title,
+        
+      };
+
+      // Add the new agenda item to the existing agenda array
+      subtraining.topic.push(topicItem);
+
+      // Save the updated event
+      const updatedSubtraining = await subtraining.save();
+      console.log('topic item added successfully:', updatedSubtraining);
+      return updatedSubtraining;
+    } catch (error) {
+      console.error('Error adding topic to sub training:', error.message || error);
+      if (error instanceof NotFoundException || error instanceof BadRequestException) {
+        throw error;
+      }
+      throw new InternalServerErrorException('Failed to add topic to sub training');
+    }
+  }
+
+  async removeTopicFromSubTraining(subTrainingId: string, topicId: string): Promise<any> {
+    try {
+      const updatedSubTraining = await this.subTrainingModel.findByIdAndUpdate(
+        subTrainingId,
+        {
+          $pull: {
+            topic: { _id: new Types.ObjectId(topicId) }
+          }
+        },
+        { new: true }
+      ).exec();
+
+      if (!updatedSubTraining) {
+        throw new NotFoundException(`topic with ID ${subTrainingId} not found`);
+      }
+
+      return updatedSubTraining;
+    } catch (error) {
+      console.error('Error removing topic from sub training:', error.message || error);
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
+      throw new InternalServerErrorException('Failed to remove topic from sub training');
+    }
+  }
+
+  
+  async getTopicById(subTrainingId: string, topicId: string): Promise<any> {
+    try {
+      const subTraining = await this.subTrainingModel.findById(subTrainingId).exec();
+      if (!subTraining) {
+        throw new NotFoundException(`topic with ID ${subTrainingId} not found`);
+      }
+
+      const topicItem = subTraining.topic.find(
+        (a) => a._id.toString() === topicId
+      );
+
+      if (!topicItem) {
+        throw new NotFoundException(`topic item with ID ${topicId} not found in sub training`);
+      }
+
+      return topicItem;
+    } catch (error) {
+      console.error('Error fetching topic item:', error.message || error);
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
+      throw new InternalServerErrorException('Failed to fetch topic item');
+    }
   }
 }
 

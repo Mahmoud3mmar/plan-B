@@ -17,6 +17,15 @@ export enum trainingLevel{
   AllLevels = 'AllLevels',
 }
 
+export class Topics {
+  @Prop({ type: Types.ObjectId, required: true, default: () => new Types.ObjectId() })
+  _id: Types.ObjectId;
+
+  @Prop({ required: true })
+  title: string;
+
+} 
+
 @Schema()
 export class SubTrainingEntity extends Document {
   @Prop({ required: true })
@@ -40,6 +49,9 @@ export class SubTrainingEntity extends Document {
  
   @Prop({ required: true })
   description: string;
+
+  @Prop({ required: true })
+  speciality: string;
   
   @Prop({ required: true })
   location_Name: string; 
@@ -76,8 +88,9 @@ export class SubTrainingEntity extends Document {
   type: 'online' | 'offline'; // Training mode (either 'online' or 'offline')
 
   
-  @Prop({ required: true ,default:[]})
-  topics: string[]; 
+  @Prop({ type: [Topics], required: true })
+  topic: Topics[]
+
 
   @IsNotEmpty()
   @Prop({ type: String, enum: trainingLevel, trainingLevel: Level.AllLevels })
