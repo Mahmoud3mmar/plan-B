@@ -80,7 +80,7 @@ export class SubTrainingEntity extends Document {
   
   @Prop({ default: function() { return this.seats; } }) // Set default to the value of seats
   AvailableSeats: number; 
-  @Prop({ type: Types.ObjectId, ref: SummerTraining.name, required: true })
+  @Prop({ type: Types.ObjectId, ref: 'SummerTraining', required: true })
   summerTraining: Types.ObjectId; // Reference to the SummerTrainingEntity
 
   

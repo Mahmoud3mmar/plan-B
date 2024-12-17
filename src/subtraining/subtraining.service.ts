@@ -62,30 +62,31 @@ export class SubtrainingService {
   }
   
 
-  async getAllSubTrainings(paginateDto: SubTrainingsPaginateDto): Promise<{ data: SubTrainingEntity[], total: number }> {
-    const { page, limit, summerTrainingId } = paginateDto;
-
-   
-    // Check if the summer training exists
-    const summerTrainingExists = await this.summerTrainingModel.exists({ _id: summerTrainingId });
-    if (!summerTrainingExists) {
-      throw new NotFoundException('SummerTraining with the provided ID does not exist');
+  async getAllSubTrainingsForSummerTraining(summerTrainingId: string, page: number, limit: number): Promise<{ data: SubTrainingEntity[], total: number }> {
+    // Check if the summer training ID is valid
+    if (!Types.ObjectId.isValid(summerTrainingId)) {
+        throw new NotFoundException('Invalid summer training ID');
     }
+
+    // Fetch total count of sub-trainings for the specific summer training ID
+    const total = await this.subTrainingModel.countDocuments({ summerTraining: new Types.ObjectId(summerTrainingId) });
 
     // Calculate the number of documents to skip
     const skip = (page - 1) * limit;
 
-    // Fetch the total number of documents for the specific summer training
-    const total = await this.subTrainingModel.countDocuments({ summerTraining: summerTrainingId });
+    // Fetch paginated sub-trainings
+    const subTrainings = await this.subTrainingModel
+        .find({ summerTraining: new Types.ObjectId(summerTrainingId) })
+        .skip(skip)
+        .limit(limit)
+        .exec();
 
-    // Fetch the paginated data
-    const data = await this.subTrainingModel
-      .find({ summerTraining: summerTrainingId })
-      .skip(skip)
-      .limit(limit)
-      .exec();
+    // If no sub-trainings found, log the message
+    if (subTrainings.length === 0) {
+        console.log(`No sub-trainings found for summer training ID: ${summerTrainingId}`);
+    }
 
-    return { data, total };
+    return { data: subTrainings, total };
   }
 
 
@@ -310,5 +311,7 @@ export class SubtrainingService {
       throw new InternalServerErrorException('Failed to fetch topic item');
     }
   }
+
+ 
 }
 

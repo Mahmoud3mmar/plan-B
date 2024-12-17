@@ -55,11 +55,20 @@ export class SubtrainingController {
   }
 
 
-  @Get('sorted')
-  async getAll(@Query() paginateDto: SubTrainingsPaginateDto) {
-    return this.subtrainingService.getAllSubTrainings(paginateDto);
-  }
 
+  @Get('sorted/:id')
+  // @UseGuards(RolesGuard)
+  // @Roles(Role.ADMIN) // Adjust roles as necessary
+  @ApiOperation({ summary: 'Get all sub-trainings for a specific summer training ID' })
+  @ApiResponse({ status: 200, description: 'List of sub-trainings', type: [SubTrainingEntity] })
+  @ApiResponse({ status: 404, description: 'Summer training not found' })
+  async getAllSubTrainingsForSummerTraining(
+    @Param('id') summerTrainingId: string,
+    @Query('page') page: number = 1, // Default to page 1
+    @Query('limit') limit: number = 10 // Default to limit 10
+  ): Promise<{ data: SubTrainingEntity[], total: number }> {
+    return this.subtrainingService.getAllSubTrainingsForSummerTraining(summerTrainingId, page, limit);
+  }
   @Get(':id')
   @ApiResponse({
     status: 200,
