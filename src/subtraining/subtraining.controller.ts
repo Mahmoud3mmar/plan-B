@@ -160,4 +160,12 @@ export class SubtrainingController {
   ) {
     return await this.subtrainingService.getTopicById(subtrainingId, topicId);
   }
+
+  @Get(':id/topics')
+  @ApiOperation({ summary: 'Get all topics for a specific sub-training ID' })
+  @ApiResponse({ status: 200, description: 'List of topics', type: [TopicDto] })
+  @ApiResponse({ status: 404, description: 'Sub-training not found' })
+  async getTopicsBySubTrainingId(@Param('id') subTrainingId: string): Promise<TopicDto[]> {
+    return this.subtrainingService.getTopicsBySubTrainingId(subTrainingId);
+  }
 }

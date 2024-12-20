@@ -312,6 +312,18 @@ export class SubtrainingService {
     }
   }
 
- 
+  async getTopicsBySubTrainingId(subTrainingId: string): Promise<TopicDto[]> {
+    // Find the sub-training by ID
+    const subTraining = await this.subTrainingModel.findById(subTrainingId).exec();
+    
+    // If not found, throw a NotFoundException
+    if (!subTraining) {
+        throw new NotFoundException(`Sub-training with ID ${subTrainingId} not found`);
+    }
+
+    // Return the topics from the sub-training
+    return subTraining.topic; // Assuming 'topic' is an array of TopicDto
+  }
+
 }
 
