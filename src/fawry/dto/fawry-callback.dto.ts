@@ -12,49 +12,49 @@ class OrderItemDto {
   quantity: number;
 }
 
-// class ThreeDSInfoDto {
-//   @IsString()
-//   eci: string;
+class ThreeDSInfoDto {
+  @IsString()
+  eci: string;
 
-//   @IsString()
-//   xid: string;
+  @IsString()
+  xid: string;
 
-//   @IsString()
-//   enrolled: string;
+  @IsString()
+  enrolled: string;
 
-//   @IsString()
-//   status: string;
+  @IsString()
+  status: string;
 
-//   @IsString()
-//   batchNumber: string;
+  @IsString()
+  batchNumber: string;
 
-//   @IsString()
-//   command: string;
+  @IsString()
+  command: string;
 
-//   @IsString()
-//   message: string;
+  @IsString()
+  message: string;
 
-//   @IsString()
-//   verSecurityLevel: string;
+  @IsString()
+  verSecurityLevel: string;
 
-//   @IsString()
-//   verStatus: string;
+  @IsString()
+  verStatus: string;
 
-//   @IsString()
-//   verType: string;
+  @IsString()
+  verType: string;
 
-//   @IsString()
-//   verToken: string;
+  @IsString()
+  verToken: string;
 
-//   @IsString()
-//   version: string;
+  @IsString()
+  version: string;
 
-//   @IsString()
-//   receiptNumber: string;
+  @IsString()
+  receiptNumber: string;
 
-//   @IsString()
-//   sessionId: string;
-// }
+  @IsString()
+  sessionId: string;
+}
 
 class InvoiceInfoDto {
   @IsString()
@@ -80,8 +80,8 @@ export class FawryCallbackDto {
   @IsString()
   merchantRefNumber: string;
 
-  @IsString()
-  customerName: string;
+  // @IsString()
+  // customerName: string;
 
   @IsString()
   customerMobile: string;
@@ -143,21 +143,21 @@ export class FawryCallbackDto {
   @IsString() // Add this line
   messageSignature: string; // Add this line
 
-  // @IsOptional()
-  // @ValidateNested()
-  // @Type(() => ThreeDSInfoDto)
-  // threeDSInfo?: ThreeDSInfoDto;
+  @IsOptional()
+  @ValidateNested()
+  @Type(() => ThreeDSInfoDto)
+  threeDSInfo?: ThreeDSInfoDto;
 
   @IsOptional()
   @ValidateNested()
   @Type(() => InvoiceInfoDto)
   invoiceInfo?: InvoiceInfoDto;
 
-  // @IsOptional()
-  // @IsNumber()
-  // installmentInterestAmount?: number;
+  @IsOptional()
+  @IsNumber()
+  installmentInterestAmount?: number;
 
-  // @IsOptional()
-  // @IsNumber()
-  // installmentMonths?: number;
+  @IsOptional()
+  @IsNumber()
+  installmentMonths?: number;
 }
