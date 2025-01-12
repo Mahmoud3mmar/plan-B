@@ -7,6 +7,9 @@ export class Student extends User {
   @Prop({ type: [Types.ObjectId], ref: 'Course' })
   coursesEnrolled: Types.ObjectId[];
 
+  @Prop({ type: [Types.ObjectId], ref: 'SubTraining' })
+  subTrainingsEnrolled: Types.ObjectId[];
+
   @Prop({ required: false })
   profileImage?: string; // Optional field for profile image URL
 }

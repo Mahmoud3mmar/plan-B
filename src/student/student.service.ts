@@ -13,15 +13,16 @@ import { Model, Types } from 'mongoose';
 import { CloudinaryService } from '../cloudinary/cloudinary.service';
 import { Course } from '../course/entities/course.entity';
 import { Events } from '../events/entities/event.entity';
+import { SubTrainingEntity } from 'src/subtraining/entities/subtraining.entity';
 
 @Injectable()
 export class StudentService {
   constructor(
     @InjectModel(Student.name) private studentModel: Model<Student>,
+    @InjectModel(SubTrainingEntity.name) private subTrainingModel: Model<SubTrainingEntity>,
     private readonly cloudinaryService: CloudinaryService,
     @InjectModel(Course.name) private readonly courseModel: Model<Course>,
     @InjectModel(Events.name) private readonly eventModel: Model<Events>
-
   ) {}
 
   async enrollInCourse(studentId: string, courseId: string): Promise<Student> {
@@ -183,6 +184,45 @@ export class StudentService {
     const result = await this.studentModel.findByIdAndDelete(id).exec();
     if (!result) {
       throw new NotFoundException(`Student with ID ${id} not found`);
+    }
+  }
+
+  async enrollInSubTraining(studentId: string, subTrainingId: string): Promise<Student> {
+    const studentObjectId = new Types.ObjectId(studentId);
+    const subTrainingObjectId = new Types.ObjectId(subTrainingId);
+
+    try {
+      // Check if student exists
+      const student = await this.studentModel.findById(studentId).exec();
+      if (!student) {
+        throw new NotFoundException(`Student with ID ${studentId} not found`);
+      }
+
+      // Check if sub-training exists
+      const subTraining = await this.subTrainingModel.findById(subTrainingId).exec();
+      if (!subTraining) {
+        throw new NotFoundException(`Sub-training with ID ${subTrainingId} not found`);
+      }
+
+      // Check if student is already enrolled
+      if (student.subTrainingsEnrolled.includes(subTrainingObjectId)) {
+        throw new ConflictException('Student is already enrolled in this sub-training');
+      }
+
+      // Add sub-training to student's enrolled sub-trainings
+      student.subTrainingsEnrolled.push(subTrainingObjectId);
+      await student.save();
+
+      // Increase the number of students enrolled in the sub-training
+      subTraining.numberOfStudentsEnrolled += 1;
+      await subTraining.save();
+
+      return student;
+    } catch (error) {
+      if (error instanceof NotFoundException || error instanceof ConflictException) {
+        throw error;
+      }
+      throw new InternalServerErrorException('Failed to enroll in sub-training: ' + error.message);
     }
   }
 }

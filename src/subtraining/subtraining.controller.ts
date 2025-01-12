@@ -181,10 +181,12 @@ export class SubtrainingController {
     @Res() res: Response
   ): Promise<any> {
     const user = req.user;
+    const userId = req.user.sub; // Extract user ID from the JWT token
+
     purchaseDto.customerName = user.firstName + ' ' + user.lastName;
     purchaseDto.customerEmail = user.email;
 
-    const redirectUrl = await this.subtrainingService.purchaseSubTraining(id, purchaseDto);
+    const redirectUrl = await this.subtrainingService.purchaseSubTraining(id, purchaseDto,userId);
     
     return res.json({ redirectUrl });
   }

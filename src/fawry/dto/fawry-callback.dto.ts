@@ -1,5 +1,6 @@
-import { IsString, IsNumber, IsEmail, IsOptional, IsArray, ValidateNested } from 'class-validator';
+import { IsString, IsNumber, IsEmail, IsOptional, IsArray, ValidateNested, IsEnum } from 'class-validator';
 import { Type } from 'class-transformer';
+import { PurchaseType } from '../PurchaseTypeEnum';
 
 class OrderItemDto {
   @IsString()
@@ -160,4 +161,8 @@ export class FawryCallbackDto {
   @IsOptional()
   @IsNumber()
   installmentMonths?: number;
+
+  @IsEnum(PurchaseType, { message: 'purchaseType must be a valid PurchaseType' })
+  purchaseType: PurchaseType; // Use the enum here
+
 }

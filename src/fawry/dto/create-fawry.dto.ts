@@ -1,5 +1,6 @@
-import { IsString, IsOptional, IsNumber, IsArray, ValidateNested, IsBoolean } from 'class-validator';
+import { IsString, IsOptional, IsNumber, IsArray, ValidateNested, IsBoolean, IsEnum } from 'class-validator';
 import { Type } from 'class-transformer';
+import { PurchaseType } from '../PurchaseTypeEnum';
 
 class ChargeItem {
     @IsString()
@@ -66,4 +67,8 @@ export class CreateChargeRequestDto {
     @IsOptional()
     @IsString()
     signature?: string; // Optional if you are generating it in the service
+
+    @IsEnum(PurchaseType, { message: 'purchaseType must be a valid PurchaseType' })
+    purchaseType: PurchaseType; // Use the enum here
+
 }

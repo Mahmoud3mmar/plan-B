@@ -3,6 +3,7 @@ import { Document } from 'mongoose';
 import { IsString, IsNumber, IsOptional, IsArray, ValidateNested } from 'class-validator';
 import { Type } from 'class-transformer';
 
+@Schema({ timestamps: true }) // This will automatically add createdAt and updatedAt fields
 class OrderItem {
   @Prop({ required: true })
   @IsString()

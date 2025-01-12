@@ -14,6 +14,7 @@ import { PurchaseSubTrainingDto } from './dto/purchase-subtraining.dto';
 import { FawryService } from '../fawry/fawry.service';
 import { FawryCallbackDto } from 'src/fawry/dto/fawry-callback.dto';
 import { FawryOrders } from '../fawry/entities/fawry.entity';
+import { PurchaseType } from 'src/fawry/PurchaseTypeEnum';
 
 @Injectable()
 export class SubtrainingService {
@@ -332,12 +333,12 @@ export class SubtrainingService {
   }
 
 
-  async purchaseSubTraining(id: string, purchaseDto: PurchaseSubTrainingDto): Promise<string> {
+  async purchaseSubTraining(id: string, purchaseDto: PurchaseSubTrainingDto,userId:String): Promise<string> {
     try {
         // // Log the incoming purchaseDto for debugging
         // console.log('Purchase DTO:', purchaseDto);
         // console.log('Sub-training ID:', id); // Log the parsed subTrainingId
-
+      console.log(userId)
         // Retrieve the sub-training
         const subTraining = await this.subTrainingModel.findById(id).exec();
         if (!subTraining) {
@@ -355,7 +356,7 @@ export class SubtrainingService {
         // Create the charge request DTO
         const createChargeRequestDto = {
             merchantCode: '', // Ensure this is set in your environment
-            merchantRefNum: '', // Unique reference number
+            merchantRefNum: userId.toString(), // Ensure this is a primitive string
             customerMobile: purchaseDto.customerMobile,
             customerEmail: purchaseDto.customerEmail,
             customerName: purchaseDto.customerName,
@@ -369,7 +370,8 @@ export class SubtrainingService {
                 },
             ],
             returnUrl: 'https://www.google.com/', // Your actual return URL
-            paymentExpiry:0 // 24 hours in milliseconds
+            paymentExpiry: 0, // 24 hours in milliseconds
+            purchaseType: PurchaseType.SUB_TRAINING,
         };
 
         // Call Fawry service to create charge request
