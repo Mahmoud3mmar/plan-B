@@ -8,7 +8,6 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { FawryOrders } from './entities/fawry.entity';
 import { SubTrainingEntity } from 'src/subtraining/entities/subtraining.entity';
-import { PurchaseType } from './PurchaseTypeEnum';
 import { StudentService } from 'src/student/student.service';
 
 // interface ChargeItem {

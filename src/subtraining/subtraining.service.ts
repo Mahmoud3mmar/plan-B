@@ -14,7 +14,6 @@ import { PurchaseSubTrainingDto } from './dto/purchase-subtraining.dto';
 import { FawryService } from '../fawry/fawry.service';
 import { FawryCallbackDto } from 'src/fawry/dto/fawry-callback.dto';
 import { FawryOrders } from '../fawry/entities/fawry.entity';
-import { PurchaseType } from 'src/fawry/PurchaseTypeEnum';
 import { v4 as uuidv4 } from 'uuid'; // Ensure you import uuidv4
 
 @Injectable()
@@ -375,7 +374,6 @@ export class SubtrainingService {
             ],
             returnUrl: 'https://www.google.com/', // Your actual return URL
             paymentExpiry: 0, // 24 hours in milliseconds
-            purchaseType: PurchaseType.SUB_TRAINING,
         };
 
         // Call Fawry service to create charge request

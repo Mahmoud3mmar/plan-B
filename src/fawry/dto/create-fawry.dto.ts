@@ -1,6 +1,5 @@
 import { IsString, IsOptional, IsNumber, IsArray, ValidateNested, IsBoolean, IsEnum } from 'class-validator';
 import { Type } from 'class-transformer';
-import { PurchaseType } from '../PurchaseTypeEnum';
 
 class ChargeItem {
     @IsString()
