@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, BadRequestException, InternalServerErrorException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException, InternalServerErrorException, HttpException, HttpStatus } from '@nestjs/common';
 import { CreateSubTrainingDto } from './dto/create.subtraining.dto';
 import { SubTrainingEntity } from './entities/subtraining.entity';
 import { SummerTraining } from '../summertraining/entities/summertraining.entity';
@@ -10,6 +10,10 @@ import { SubTrainingsPaginateDto } from './dto/get.sub.trainings.dto';
 import { CreateOfferDto } from './dto/create-offer.dto';
 import { AgendaDto } from 'src/events/dto/agenda.dto';
 import { TopicDto } from './dto/add.topic.dto';
+import { PurchaseSubTrainingDto } from './dto/purchase-subtraining.dto';
+import { FawryService } from '../fawry/fawry.service';
+import { FawryCallbackDto } from 'src/fawry/dto/fawry-callback.dto';
+import { FawryOrders } from '../fawry/entities/fawry.entity';
 
 @Injectable()
 export class SubtrainingService {
@@ -17,8 +21,10 @@ export class SubtrainingService {
     @InjectModel(SubTrainingEntity.name) private readonly subTrainingModel: Model<SubTrainingEntity>,
     @InjectModel(SummerTraining.name) private readonly summerTrainingModel: Model<SummerTraining>,
     @InjectModel(Instructor.name) private readonly InstructorModel: Model<Instructor>,
+    @InjectModel(FawryOrders.name) private readonly fawryModel: Model<FawryOrders>,
 
     private readonly cloudinaryService: CloudinaryService,
+    private readonly fawryService: FawryService,
 
   ) {}
   async create(createSubTrainingDto: CreateSubTrainingDto, image: Express.Multer.File): Promise<SubTrainingEntity> {
@@ -325,5 +331,154 @@ export class SubtrainingService {
     return subTraining.topic; // Assuming 'topic' is an array of TopicDto
   }
 
+
+  async purchaseSubTraining(id: string, purchaseDto: PurchaseSubTrainingDto): Promise<string> {
+    // Log the incoming purchaseDto for debugging
+    console.log('Purchase DTO:', purchaseDto);
+    console.log('Sub-training ID:', id); // Log the parsed subTrainingId
+
+    // Retrieve the sub-training
+    const subTraining = await this.subTrainingModel.findById(id).exec();
+    if (!subTraining) {
+        throw new NotFoundException('Sub-training not found');
+    }
+
+    // Check if there are available seats
+    if (subTraining.AvailableSeats <= 0) {
+        throw new BadRequestException('No seats available for this sub-training');
+    }
+
+    // Determine the price based on offer
+    const amount = subTraining.price;
+
+    // Create the charge request DTO
+    const createChargeRequestDto = {
+        merchantCode: '',
+        merchantRefNum: '',
+        customerMobile: purchaseDto.customerMobile,
+        customerEmail: purchaseDto.customerEmail,
+        customerName: purchaseDto.customerName,
+        language: 'en-gb',
+        chargeItems: [
+            {
+                itemId: subTraining._id.toString(),
+                description: subTraining.name,
+                price: amount,
+                quantity: 1,
+            },
+        ],
+        returnUrl: 'https://www.google.com/', // Your return URL
+        paymentExpiry:0 // 24 hours in milliseconds
+    };
+
+    // Call Fawry service to create charge request
+    const redirectUrl = await this.fawryService.createChargeRequest(createChargeRequestDto);
+
+    // Log the redirect URL for debugging
+    console.log('Redirect URL:', redirectUrl);
+
+    // Ensure redirectUrl is a string
+    if (typeof redirectUrl !== 'string') {
+        throw new InternalServerErrorException('Invalid redirect URL returned from Fawry service');
+    }
+
+    // Return the redirect URL
+    return redirectUrl; // Return the URL directly
 }
+
+// async handleCallback(fawryCallbackDto: FawryCallbackDto): Promise<void> {
+//   try {
+//       // Log the received callback for debugging
+//       console.log('Received Fawry callback:', fawryCallbackDto);
+
+//       // Verify the signature
+//       const expectedSignature = this.fawryService.generateCallbackSignature(fawryCallbackDto);
+//       console.log('Generated Signature:', expectedSignature);
+//       console.log('Received Signature:', fawryCallbackDto.messageSignature);
+
+//       if (expectedSignature !== fawryCallbackDto.messageSignature) {
+//           throw new HttpException('Invalid callback signature', HttpStatus.BAD_REQUEST);
+//       }
+
+//       // Check if the order already exists
+//       const existingOrder = await this.fawryModel.findOne({ merchantRefNum: fawryCallbackDto.merchantRefNumber });
+//       if (existingOrder) {
+//           console.log('Order already processed. Skipping...');
+//           return;
+//       }
+
+//       // Retrieve the charge item
+//       const chargeItem = fawryCallbackDto.orderItems[0];
+//       if (!chargeItem) {
+//           throw new BadRequestException('No charge items found in the callback');
+//       }
+//       const subTrainingId = chargeItem.itemCode; // Use `itemCode` instead of `itemId`
+
+//       // Find the sub-training
+//       const subTraining = await this.subTrainingModel.findById(subTrainingId);
+//       if (!subTraining) {
+//           throw new NotFoundException('Sub-training not found');
+//       }
+
+//       // Handle order status
+//       if (fawryCallbackDto.orderStatus !== 'PAID') {
+//           console.log(`Order status is ${fawryCallbackDto.orderStatus}. No action taken.`);
+//           return;
+//       }
+
+//       // Update the sub-training
+//       subTraining.numberOfStudentsEnrolled += 1;
+//       subTraining.AvailableSeats -= 1;
+
+//       try {
+//           await subTraining.save();
+//           console.log('Sub-training updated successfully:', subTrainingId);
+//       } catch (error) {
+//           console.error('Failed to update sub-training:', error.message);
+//           throw new InternalServerErrorException('Failed to update sub-training');
+//       }
+
+//       // Save the callback data to the database using the Fawry entity
+//       const fawryOrder = new this.fawryModel({
+//           requestId: fawryCallbackDto.requestId,
+//           fawryRefNumber: fawryCallbackDto.fawryRefNumber,
+//           merchantRefNum: fawryCallbackDto.merchantRefNumber,
+//           customerName: fawryCallbackDto.customerName,
+//           customerMobile: fawryCallbackDto.customerMobile,
+//           customerMail: fawryCallbackDto.customerMail,
+//           customerMerchantId: fawryCallbackDto.customerMerchantId,
+//           paymentAmount: fawryCallbackDto.paymentAmount,
+//           orderAmount: fawryCallbackDto.orderAmount,
+//           fawryFees: fawryCallbackDto.fawryFees,
+//           shippingFees: fawryCallbackDto.shippingFees,
+//           orderStatus: fawryCallbackDto.orderStatus,
+//           paymentMethod: fawryCallbackDto.paymentMethod,
+//           paymentTime: fawryCallbackDto.paymentTime,
+//           authNumber: fawryCallbackDto.authNumber,
+//           paymentRefrenceNumber: fawryCallbackDto.paymentRefrenceNumber,
+//           orderExpiryDate: fawryCallbackDto.orderExpiryDate,
+//           orderItems: fawryCallbackDto.orderItems,
+//           failureErrorCode: fawryCallbackDto.failureErrorCode,
+//           failureReason: fawryCallbackDto.failureReason,
+//           messageSignature: fawryCallbackDto.messageSignature,
+//           threeDSInfo: fawryCallbackDto.threeDSInfo,
+//           invoiceInfo: fawryCallbackDto.invoiceInfo,
+//           installmentInterestAmount: fawryCallbackDto.installmentInterestAmount,
+//           installmentMonths: fawryCallbackDto.installmentMonths,
+//       });
+
+//       try {
+//           await fawryOrder.save();
+//           console.log('Fawry order saved successfully:', fawryOrder);
+//       } catch (error) {
+//           console.error('Failed to save Fawry order:', error.message);
+//           throw new InternalServerErrorException('Failed to save Fawry order');
+//       }
+//   } catch (error) {
+//       console.error('Error in handleCallback:', error.message || error);
+//       throw error; // Re-throw the error to be handled by the global exception filter
+//   }
+// }
+}
+
 

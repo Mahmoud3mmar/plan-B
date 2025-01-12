@@ -22,6 +22,7 @@ import { SubtrainingModule } from './subtraining/subtraining.module';
 import { CurriculumBlockModule } from './curriculum-block/curriculum.block.module';
 import { AwsModule } from './aws/aws.module';
 import { ContactUsModule } from './contact-us/contact-us.module';
+import { FawryModule } from './fawry/fawry.module';
 
 @Module({
   imports: [AuthModule, UserModule, CourseModule, FaqsModule, InstructorModule, ReviewModule, SummertrainingModule,VedioModule,
@@ -39,7 +40,8 @@ import { ContactUsModule } from './contact-us/contact-us.module';
   SubtrainingModule,
   CurriculumBlockModule,
   AwsModule,
-  ContactUsModule,  
+  ContactUsModule,
+  FawryModule,  
 
 ],
   controllers: [AppController], 

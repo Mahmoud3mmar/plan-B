@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseInterceptors, UploadedFile, Query, NotFoundException, BadRequestException, Put, InternalServerErrorException, UseGuards} from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseInterceptors, UploadedFile, Query, NotFoundException, BadRequestException, Put, InternalServerErrorException, UseGuards, Res } from '@nestjs/common';
 import { SubtrainingService } from './subtraining.service';
 import { ApiBearerAuth, ApiBody, ApiConsumes, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { FileInterceptor } from '@nestjs/platform-express';
@@ -11,6 +11,9 @@ import { Roles } from '../auth/Roles.decorator';
 import { Role } from '../user/common utils/Role.enum';
 import { CreateOfferDto } from './dto/create-offer.dto';
 import { TopicDto } from './dto/add.topic.dto';
+import { PurchaseSubTrainingDto } from './dto/purchase-subtraining.dto';
+import { Response } from 'express';
+
 @ApiBearerAuth()
 @ApiTags('subTrainings')
 @Controller('sub/training')
@@ -167,5 +170,16 @@ export class SubtrainingController {
   @ApiResponse({ status: 404, description: 'Sub-training not found' })
   async getTopicsBySubTrainingId(@Param('id') subTrainingId: string): Promise<TopicDto[]> {
     return this.subtrainingService.getTopicsBySubTrainingId(subTrainingId);
+  }
+
+  @Post(':id/purchase')
+  async purchaseSubTraining(
+    @Param('id') id: string,
+    @Body() purchaseDto: PurchaseSubTrainingDto,
+    @Res() res: Response
+  ): Promise<any> {
+    const redirectUrl = await this.subtrainingService.purchaseSubTraining(id, purchaseDto);
+    
+    return res.redirect(redirectUrl);
   }
 }
