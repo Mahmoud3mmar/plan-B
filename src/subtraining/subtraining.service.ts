@@ -378,7 +378,7 @@ export class SubtrainingService {
     console.log('Redirect URL:', redirectUrl);
 
     // Ensure redirectUrl is a string
-    if (typeof redirectUrl !== 'string') {
+    if (typeof redirectUrl !== 'string') { 
         throw new InternalServerErrorException('Invalid redirect URL returned from Fawry service');
     }
 
