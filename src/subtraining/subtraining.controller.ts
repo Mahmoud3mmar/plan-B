@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseInterceptors, UploadedFile, Query, NotFoundException, BadRequestException, Put, InternalServerErrorException, UseGuards, Res } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseInterceptors, UploadedFile, Query, NotFoundException, BadRequestException, Put, InternalServerErrorException, UseGuards, Res, Request } from '@nestjs/common';
 import { SubtrainingService } from './subtraining.service';
 import { ApiBearerAuth, ApiBody, ApiConsumes, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { FileInterceptor } from '@nestjs/platform-express';
@@ -173,11 +173,17 @@ export class SubtrainingController {
   }
 
   @Post(':id/purchase')
+  @UseGuards(AccessTokenGuard, RolesGuard)
   async purchaseSubTraining(
     @Param('id') id: string,
     @Body() purchaseDto: PurchaseSubTrainingDto,
+    @Request() req: any,
     @Res() res: Response
   ): Promise<any> {
+    const user = req.user;
+    purchaseDto.customerName = user.firstName + ' ' + user.lastName;
+    purchaseDto.customerEmail = user.email;
+
     const redirectUrl = await this.subtrainingService.purchaseSubTraining(id, purchaseDto);
     
     return res.json({ redirectUrl });

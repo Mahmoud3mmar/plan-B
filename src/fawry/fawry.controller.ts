@@ -1,4 +1,4 @@
-import { Controller, Post, Body, BadRequestException } from '@nestjs/common';
+import { Controller, Post, Body, BadRequestException, HttpCode } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { FawryService } from './fawry.service';
 import { FawryCallbackDto } from './dto/fawry-callback.dto';
@@ -25,6 +25,7 @@ export class FawryController {
     return { redirectUrl };
   }
   @Post('callback')
+  @HttpCode(200)
   async handleCallback(@Body() fawryCallbackDto: FawryCallbackDto): Promise<void> {
     await this.fawryService.handleCallback(fawryCallbackDto);
   }

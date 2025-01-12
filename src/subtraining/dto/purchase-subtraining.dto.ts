@@ -1,4 +1,4 @@
-import { IsString, IsNumber } from 'class-validator';
+import { IsString, IsNumber, IsOptional } from 'class-validator';
 
 export class PurchaseSubTrainingDto {
     // @IsString()
@@ -7,10 +7,12 @@ export class PurchaseSubTrainingDto {
     @IsString()
     customerMobile: string;
 
+    @IsOptional()
     @IsString()
-    customerEmail: string;
+    customerEmail?: string;
 
+    @IsOptional()
     @IsString()
-    customerName: string;
+    customerName?: string;
 
 }
