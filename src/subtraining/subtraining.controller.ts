@@ -180,6 +180,6 @@ export class SubtrainingController {
   ): Promise<any> {
     const redirectUrl = await this.subtrainingService.purchaseSubTraining(id, purchaseDto);
     
-    return res.redirect(redirectUrl);
+    return res.json({ redirectUrl });
   }
 }
