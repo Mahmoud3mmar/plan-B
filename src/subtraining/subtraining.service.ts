@@ -15,6 +15,7 @@ import { FawryService } from '../fawry/fawry.service';
 import { FawryCallbackDto } from 'src/fawry/dto/fawry-callback.dto';
 import { FawryOrders } from '../fawry/entities/fawry.entity';
 import { PurchaseType } from 'src/fawry/PurchaseTypeEnum';
+import { v4 as uuidv4 } from 'uuid'; // Ensure you import uuidv4
 
 @Injectable()
 export class SubtrainingService {
@@ -338,7 +339,10 @@ export class SubtrainingService {
         // // Log the incoming purchaseDto for debugging
         // console.log('Purchase DTO:', purchaseDto);
         // console.log('Sub-training ID:', id); // Log the parsed subTrainingId
-      console.log(userId)
+
+         console.log(userId)
+         const merchantRefNum = this.generateMerchantRefNum(userId.toString());
+
         // Retrieve the sub-training
         const subTraining = await this.subTrainingModel.findById(id).exec();
         if (!subTraining) {
@@ -356,7 +360,7 @@ export class SubtrainingService {
         // Create the charge request DTO
         const createChargeRequestDto = {
             merchantCode: '', // Ensure this is set in your environment
-            merchantRefNum: userId.toString(), // Ensure this is a primitive string
+            merchantRefNum: merchantRefNum, // Ensure this is a primitive string
             customerMobile: purchaseDto.customerMobile,
             customerEmail: purchaseDto.customerEmail,
             customerName: purchaseDto.customerName,
@@ -404,7 +408,11 @@ export class SubtrainingService {
         }
     }
   }
-
+  
+  private generateMerchantRefNum(userId: string): string {
+    const uuid = uuidv4(); // Generate a UUID
+    return `${userId}-${uuid}`; // Combine userId and UUID
+  }
 // async handleCallback(fawryCallbackDto: FawryCallbackDto): Promise<void> {
 //   try {
 //       // Log the received callback for debugging

@@ -214,7 +214,9 @@ async handleCallback(fawryCallbackDto: FawryCallbackDto): Promise<void> {
     }
 
     const itemId = chargeItem.itemCode; // Use `itemCode` instead of `itemId`
-    const studentId = fawryCallbackDto.merchantRefNumber; // Assuming merchantRefNumber contains the student ID
+
+    // const studentId = fawryCallbackDto.merchantRefNumber; // Assuming merchantRefNumber contains the student ID
+    const studentId = fawryCallbackDto.merchantRefNumber.split('-')[0]; // Extract userId from merchantRefNum
 
     // Handle order status
     if (fawryCallbackDto.orderStatus !== 'PAID') {
