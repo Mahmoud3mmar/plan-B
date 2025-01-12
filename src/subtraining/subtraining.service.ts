@@ -334,9 +334,9 @@ export class SubtrainingService {
 
   async purchaseSubTraining(id: string, purchaseDto: PurchaseSubTrainingDto): Promise<string> {
     try {
-        // Log the incoming purchaseDto for debugging
-        console.log('Purchase DTO:', purchaseDto);
-        console.log('Sub-training ID:', id); // Log the parsed subTrainingId
+        // // Log the incoming purchaseDto for debugging
+        // console.log('Purchase DTO:', purchaseDto);
+        // console.log('Sub-training ID:', id); // Log the parsed subTrainingId
 
         // Retrieve the sub-training
         const subTraining = await this.subTrainingModel.findById(id).exec();
