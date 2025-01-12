@@ -388,6 +388,7 @@ export class SubtrainingService {
 
     } catch (error) {
         // Handle specific errors
+        console.log(error)
         if (error instanceof NotFoundException) {
             throw new NotFoundException(error.message);
         } else if (error instanceof BadRequestException) {
