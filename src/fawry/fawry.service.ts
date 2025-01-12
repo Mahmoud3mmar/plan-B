@@ -269,6 +269,7 @@ generateSignature(chargeRequest: CreateChargeRequestDto): string {
 
 async handleCallback(fawryCallbackDto: FawryCallbackDto): Promise<void> {
   try {
+    
     // Log the received callback for debugging
     console.log('Received Fawry callback:', fawryCallbackDto);
 
@@ -324,7 +325,7 @@ async handleCallback(fawryCallbackDto: FawryCallbackDto): Promise<void> {
       requestId: fawryCallbackDto.requestId,
       fawryRefNumber: fawryCallbackDto.fawryRefNumber,
       merchantRefNum: fawryCallbackDto.merchantRefNumber,
-      customerName: fawryCallbackDto.customerName,
+      // customerName: fawryCallbackDto.customerName,
       customerMobile: fawryCallbackDto.customerMobile,
       customerMail: fawryCallbackDto.customerMail,
       customerMerchantId: fawryCallbackDto.customerMerchantId,
@@ -343,8 +344,8 @@ async handleCallback(fawryCallbackDto: FawryCallbackDto): Promise<void> {
       failureReason: fawryCallbackDto.failureReason,
       messageSignature: fawryCallbackDto.messageSignature,
       invoiceInfo: fawryCallbackDto.invoiceInfo,
-      // installmentInterestAmount: fawryCallbackDto.installmentInterestAmount,
-      // installmentMonths: fawryCallbackDto.installmentMonths,
+      installmentInterestAmount: fawryCallbackDto.installmentInterestAmount,
+      installmentMonths: fawryCallbackDto.installmentMonths,
     });
 
     try {
