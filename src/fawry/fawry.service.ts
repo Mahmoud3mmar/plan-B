@@ -325,7 +325,7 @@ async handleCallback(fawryCallbackDto: FawryCallbackDto): Promise<void> {
       requestId: fawryCallbackDto.requestId,
       fawryRefNumber: fawryCallbackDto.fawryRefNumber,
       merchantRefNum: fawryCallbackDto.merchantRefNumber,
-      // customerName: fawryCallbackDto.customerName,
+      customerName: fawryCallbackDto.customerName,
       customerMobile: fawryCallbackDto.customerMobile,
       customerMail: fawryCallbackDto.customerMail,
       customerMerchantId: fawryCallbackDto.customerMerchantId,

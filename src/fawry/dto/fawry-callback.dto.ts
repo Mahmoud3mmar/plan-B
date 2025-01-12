@@ -80,8 +80,8 @@ export class FawryCallbackDto {
   @IsString()
   merchantRefNumber: string;
 
-  // @IsString()
-  // customerName: string;
+  @IsString()
+  customerName: string;
 
   @IsString()
   customerMobile: string;
