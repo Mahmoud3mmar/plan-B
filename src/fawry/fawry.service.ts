@@ -191,15 +191,6 @@ async handleCallback(fawryCallbackDto: FawryCallbackDto): Promise<void> {
     // Log the received callback for debugging
     console.log('Received Fawry callback:', fawryCallbackDto);
 
-    // Verify the signature (optional, uncomment if needed)
-    // const expectedSignature = this.generateCallbackSignature(fawryCallbackDto);
-    // console.log('Generated Signature:', expectedSignature);
-    // console.log('Received Signature:', fawryCallbackDto.messageSignature);
-
-    // if (expectedSignature !== fawryCallbackDto.messageSignature) {
-    //   throw new HttpException('Invalid callback signature', HttpStatus.BAD_REQUEST);
-    // }
-
     // Check if the order already exists
     const existingOrder = await this.fawryModel.findOne({ merchantRefNum: fawryCallbackDto.merchantRefNumber });
     if (existingOrder) {
@@ -214,8 +205,6 @@ async handleCallback(fawryCallbackDto: FawryCallbackDto): Promise<void> {
     }
 
     const itemId = chargeItem.itemCode; // Use `itemCode` instead of `itemId`
-
-    // const studentId = fawryCallbackDto.merchantRefNumber; // Assuming merchantRefNumber contains the student ID
     const studentId = fawryCallbackDto.merchantRefNumber.split('-')[0]; // Extract userId from merchantRefNum
 
     // Handle order status
@@ -224,16 +213,15 @@ async handleCallback(fawryCallbackDto: FawryCallbackDto): Promise<void> {
       return;
     }
 
-    // Determine the purchase type and handle accordingly
-    switch (fawryCallbackDto.purchaseType) {
-      case PurchaseType.SUB_TRAINING:
+    // Determine the purchase type based on itemId
+    const purchaseType = await this.determinePurchaseType(itemId);
+
+    switch (purchaseType) {
+      case 'SUB_TRAINING':
         await this.handleSubTrainingPurchase(itemId, studentId);
         break;
-      case PurchaseType.COURSE:
+      case 'COURSE':
         await this.handleCoursePurchase(itemId, studentId);
-        break;
-      case PurchaseType.EVENT:
-        await this.handleEventPurchase(itemId, studentId);
         break;
       default:
         throw new BadRequestException('Invalid purchase type');
@@ -278,6 +266,23 @@ async handleCallback(fawryCallbackDto: FawryCallbackDto): Promise<void> {
     console.error('Error in handleCallback:', error.message || error);
     throw error; // Re-throw the error to be handled by the global exception filter
   }
+}
+
+// Helper method to determine the purchase type
+private async determinePurchaseType(itemId: string): Promise<string> {
+  // Check if the itemId corresponds to a sub-training
+  const subTraining = await this.subTrainingModel.findById(itemId).exec();
+  if (subTraining) {
+    return 'SUB_TRAINING';
+  }
+
+  // // Check if the itemId corresponds to a course
+  // const course = await this.courseModel.findById(itemId).exec();
+  // if (course) {
+  //   return 'COURSE';
+  // }
+
+  throw new BadRequestException('Invalid item ID: not found in SubTraining or Course'); // Throw an error if needed
 }
 
 /* -------------------------------------------------------------------------- */

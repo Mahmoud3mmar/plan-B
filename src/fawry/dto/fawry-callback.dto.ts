@@ -162,7 +162,7 @@ export class FawryCallbackDto {
   @IsNumber()
   installmentMonths?: number;
 
-  @IsEnum(PurchaseType, { message: 'purchaseType must be a valid PurchaseType' })
-  purchaseType: PurchaseType; // Use the enum here
+  // @IsEnum(PurchaseType, { message: 'purchaseType must be a valid PurchaseType' })
+  // purchaseType: PurchaseType; // Use the enum here
 
 }

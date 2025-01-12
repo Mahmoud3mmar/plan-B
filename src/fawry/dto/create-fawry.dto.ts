@@ -68,7 +68,7 @@ export class CreateChargeRequestDto {
     @IsString()
     signature?: string; // Optional if you are generating it in the service
 
-    @IsEnum(PurchaseType, { message: 'purchaseType must be a valid PurchaseType' })
-    purchaseType: PurchaseType; // Use the enum here
+    // @IsEnum(PurchaseType, { message: 'purchaseType must be a valid PurchaseType' })
+    // purchaseType: PurchaseType; // Use the enum here
 
 }
