@@ -333,58 +333,74 @@ export class SubtrainingService {
 
 
   async purchaseSubTraining(id: string, purchaseDto: PurchaseSubTrainingDto): Promise<string> {
-    // Log the incoming purchaseDto for debugging
-    console.log('Purchase DTO:', purchaseDto);
-    console.log('Sub-training ID:', id); // Log the parsed subTrainingId
+    try {
+        // Log the incoming purchaseDto for debugging
+        console.log('Purchase DTO:', purchaseDto);
+        console.log('Sub-training ID:', id); // Log the parsed subTrainingId
 
-    // Retrieve the sub-training
-    const subTraining = await this.subTrainingModel.findById(id).exec();
-    if (!subTraining) {
-        throw new NotFoundException('Sub-training not found');
+        // Retrieve the sub-training
+        const subTraining = await this.subTrainingModel.findById(id).exec();
+        if (!subTraining) {
+            throw new NotFoundException(`Sub-training with ID ${id} not found`);
+        }
+
+        // Check if there are available seats
+        if (subTraining.AvailableSeats <= 0) {
+            throw new BadRequestException('No seats available for this sub-training');
+        }
+
+        // Determine the price based on offer
+        const amount = subTraining.price;
+
+        // Create the charge request DTO
+        const createChargeRequestDto = {
+            merchantCode: '', // Ensure this is set in your environment
+            merchantRefNum: '', // Unique reference number
+            customerMobile: purchaseDto.customerMobile,
+            customerEmail: purchaseDto.customerEmail,
+            customerName: purchaseDto.customerName,
+            language: 'en-gb',
+            chargeItems: [
+                {
+                    itemId: subTraining._id.toString(),
+                    description: subTraining.name,
+                    price: amount,
+                    quantity: 1,
+                },
+            ],
+            returnUrl: 'https://www.google.com/', // Your actual return URL
+            paymentExpiry:0 // 24 hours in milliseconds
+        };
+
+        // Call Fawry service to create charge request
+        const redirectUrl = await this.fawryService.createChargeRequest(createChargeRequestDto);
+
+        // Log the redirect URL for debugging
+        console.log('Redirect URL:', redirectUrl);
+
+        // Ensure redirectUrl is a string
+        if (typeof redirectUrl !== 'string') { 
+            throw new InternalServerErrorException('Invalid redirect URL returned from Fawry service');
+        }
+
+        // Return the redirect URL
+        return redirectUrl; // Return the URL directly
+
+    } catch (error) {
+        // Handle specific errors
+        if (error instanceof NotFoundException) {
+            throw new NotFoundException(error.message);
+        } else if (error instanceof BadRequestException) {
+            throw new BadRequestException(error.message);
+        } else if (error instanceof InternalServerErrorException) {
+            throw new InternalServerErrorException('An error occurred while processing the payment request');
+        } else {
+            // Log unexpected errors
+            console.error('Unexpected error:', error);
+            throw new InternalServerErrorException('An unexpected error occurred');
+        }
     }
-
-    // Check if there are available seats
-    if (subTraining.AvailableSeats <= 0) {
-        throw new BadRequestException('No seats available for this sub-training');
-    }
-
-    // Determine the price based on offer
-    const amount = subTraining.price;
-
-    // Create the charge request DTO
-    const createChargeRequestDto = {
-        merchantCode: '',
-        merchantRefNum: '',
-        customerMobile: purchaseDto.customerMobile,
-        customerEmail: purchaseDto.customerEmail,
-        customerName: purchaseDto.customerName,
-        language: 'en-gb',
-        chargeItems: [
-            {
-                itemId: subTraining._id.toString(),
-                description: subTraining.name,
-                price: amount,
-                quantity: 1,
-            },
-        ],
-        returnUrl: 'https://www.google.com/', // Your return URL
-        paymentExpiry:0 // 24 hours in milliseconds
-    };
-
-    // Call Fawry service to create charge request
-    const redirectUrl = await this.fawryService.createChargeRequest(createChargeRequestDto);
-
-    // Log the redirect URL for debugging
-    console.log('Redirect URL:', redirectUrl);
-
-    // Ensure redirectUrl is a string
-    if (typeof redirectUrl !== 'string') { 
-        throw new InternalServerErrorException('Invalid redirect URL returned from Fawry service');
-    }
-
-    // Return the redirect URL
-    return redirectUrl; // Return the URL directly
-}
+  }
 
 // async handleCallback(fawryCallbackDto: FawryCallbackDto): Promise<void> {
 //   try {
