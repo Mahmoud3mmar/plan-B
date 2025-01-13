@@ -14,12 +14,16 @@ import { CloudinaryService } from '../cloudinary/cloudinary.service';
 import { PaginateDto } from './dto/get.events.dto';
 import { AddSpeakerDto } from './dto/add-speakers.dto';
 import { AgendaDto } from './dto/agenda.dto';
+import { FawryService } from '../fawry/fawry.service';
+import { PurchaseEventDto } from './dto/purchase.event.dto';
+import { v4 as uuidv4 } from 'uuid';
 
 @Injectable()
 export class EventsService {
   constructor(
     @InjectModel(Events.name) private readonly eventModel: Model<Events>,
     private readonly CloudinaryService: CloudinaryService,
+    private readonly fawryService: FawryService,
   ) {}
 
   async createEvent(
@@ -524,5 +528,89 @@ export class EventsService {
       }
       throw new InternalServerErrorException('Failed to fetch agenda item');
     }
+  }
+
+  async purchaseEvent(id: string, purchaseDto: PurchaseEventDto, userId: string): Promise<string> {
+    try {
+      // Log the incoming purchaseDto for debugging
+      console.log('Purchase DTO:', purchaseDto);
+      console.log('Event ID:', id);
+
+      // Generate a unique merchant reference number
+      const merchantRefNum = this.generateMerchantRefNum(userId.toString());
+
+      // Retrieve the event
+      const event = await this.eventModel.findById(id).exec();
+      if (!event) {
+        throw new NotFoundException(`Event with ID ${id} not found`);
+      }
+
+      // Check if the event is paid
+      if (!event.isPaid) {
+        throw new BadRequestException('This event is not marked as paid. Purchase cannot proceed.');
+      }
+
+      // Check if there are available seats
+      // if (event.availableSeats <= 0) {
+      //   throw new BadRequestException('No seats available for this event');
+      // }
+
+      // Determine the price based on the event
+      const amount = event.price;
+
+      // Create the charge request DTO
+      const createChargeRequestDto = {
+        merchantCode: '', // Ensure this is set in your environment
+        merchantRefNum: merchantRefNum, // Ensure this is a primitive string
+        customerMobile: purchaseDto.customerMobile,
+        customerEmail: purchaseDto.customerEmail,
+        customerName: purchaseDto.customerName,
+        language: 'en-gb',
+        chargeItems: [
+          {
+            itemId: event._id.toString(),
+            description: event.eventName, // Use eventName instead of name
+            price: amount,
+            quantity: 1,
+          },
+        ],
+        returnUrl: 'https://www.google.com/', // Your actual return URL
+        paymentExpiry: 0, // Set payment expiry as needed
+      };
+
+      // Call Fawry service to create charge request
+      const redirectUrl = await this.fawryService.createChargeRequest(createChargeRequestDto);
+
+      // Log the redirect URL for debugging
+      console.log('Redirect URL:', redirectUrl);
+
+      // Ensure redirectUrl is a string
+      if (typeof redirectUrl !== 'string') {
+        throw new InternalServerErrorException('Invalid redirect URL returned from Fawry service');
+      }
+
+      // Return the redirect URL
+      return redirectUrl; // Return the URL directly
+
+    } catch (error) {
+      // Handle specific errors
+      console.log(error);
+      if (error instanceof NotFoundException) {
+        throw new NotFoundException(error.message);
+      } else if (error instanceof BadRequestException) {
+        throw new BadRequestException(error.message);
+      } else if (error instanceof InternalServerErrorException) {
+        throw new InternalServerErrorException('An error occurred while processing the payment request');
+      } else {
+        // Log unexpected errors
+        console.error('Unexpected error:', error);
+        throw new InternalServerErrorException('An unexpected error occurred');
+      }
+    }
+  }
+
+  private generateMerchantRefNum(userId: string): string {
+    const uuid = uuidv4(); // Generate a UUID
+    return `${userId}-${uuid}`; // Combine userId and UUID
   }
 }

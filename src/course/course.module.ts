@@ -12,6 +12,7 @@ import { Review, ReviewSchema } from '../review/entities/review.entity';
 import { Category, CategorySchema } from '../category/entities/category.entity';
 import { Video, VideoSchema } from '../vedio/entities/vedio.entity';
 import { CurriculumBlock, CurriculumBlockSchema } from '../curriculum-block/entities/curriculum.block.entity';
+import { FawryModule } from '../fawry/fawry.module'; // Import the FawryModule
 
 @Module({
   imports: [
@@ -28,8 +29,10 @@ import { CurriculumBlock, CurriculumBlockSchema } from '../curriculum-block/enti
 
     ]),
     CategoryModule, // Import CategoryModule here
+    FawryModule, // Add FawryModule here
   ],
   providers: [CourseService,CloudinaryService],
   controllers: [CourseController],
+  exports: [CourseService], // Export CourseService if used in other modules
 })
 export class CourseModule {}

@@ -9,6 +9,8 @@ import { Model } from 'mongoose';
 import { FawryOrders } from './entities/fawry.entity';
 import { SubTrainingEntity } from 'src/subtraining/entities/subtraining.entity';
 import { StudentService } from 'src/student/student.service';
+import { Events } from 'src/events/entities/event.entity';
+import { Course } from 'src/course/entities/course.entity';
 
 // interface ChargeItem {
 //   itemId: string;
@@ -35,6 +37,9 @@ export class FawryService {
     
     @InjectModel(FawryOrders.name) private readonly fawryModel: Model<FawryOrders>,
     @InjectModel(SubTrainingEntity.name) private readonly subTrainingModel: Model<SubTrainingEntity>,
+    @InjectModel(Events.name) private readonly eventsModel: Model<Events>,
+    @InjectModel(Course.name) private readonly courseModel: Model<Course>,
+
     private readonly studentService: StudentService, // Inject StudentService here
 
 
@@ -222,6 +227,10 @@ async handleCallback(fawryCallbackDto: FawryCallbackDto): Promise<void> {
       case 'COURSE':
         await this.handleCoursePurchase(itemId, studentId);
         break;
+      case 'EVENT':
+        await this.handleEventPurchase(itemId, studentId);
+        break;
+        
       default:
         throw new BadRequestException('Invalid purchase type');
     }
@@ -275,13 +284,19 @@ private async determinePurchaseType(itemId: string): Promise<string> {
     return 'SUB_TRAINING';
   }
 
-  // // Check if the itemId corresponds to a course
-  // const course = await this.courseModel.findById(itemId).exec();
-  // if (course) {
-  //   return 'COURSE';
-  // }
+  // Check if the itemId corresponds to an event
+  const event = await this.eventsModel.findById(itemId).exec();
+  if (event) {
+    return 'EVENT';
+  }
 
-  throw new BadRequestException('Invalid item ID: not found in SubTraining or Course'); // Throw an error if needed
+  // Check if the itemId corresponds to a course (if applicable)
+  const course = await this.courseModel.findById(itemId).exec();
+  if (course) {
+    return 'COURSE';
+  }
+
+  throw new BadRequestException('Invalid item ID: not found in SubTraining, Event, or Course'); // Throw an error if needed
 }
 
 /* -------------------------------------------------------------------------- */
@@ -304,31 +319,31 @@ async handleSubTrainingPurchase(subTrainingId: string, studentId: string): Promi
 }
 
 async handleCoursePurchase(courseId: string, studentId: string): Promise<void> {
-  // const course = await this.courseModel.findById(courseId);
-  // if (!course) {
-  //   throw new NotFoundException('Course not found');
-  // }
+  const course = await this.courseModel.findById(courseId);
+  if (!course) {
+    throw new NotFoundException('Course not found');
+  }
 
-  // // Update course enrollment
-  // course.studentsEnrolled += 1;
-  // await course.save();
+  // Update course enrollment
+  course.studentsEnrolled += 1;
+  await course.save();
 
-  // // Enroll the student in the course
-  // await this.studentService.enrollInCourse(studentId, courseId);
+  // Enroll the student in the course
+  await this.studentService.enrollInCourse(studentId, courseId);
 }
 
 async handleEventPurchase(eventId: string, studentId: string): Promise<void> {
-  // const event = await this.eventModel.findById(eventId);
-  // if (!event) {
-  //   throw new NotFoundException('Event not found');
-  // }
+  const event = await this.eventsModel.findById(eventId);
+  if (!event) {
+    throw new NotFoundException('Event not found');
+  }
 
-  // // Update event enrollment
-  // event.enrolledStudents.push(studentId);
-  // await event.save();
+  // Update event enrollment
+  event.enrolledStudents.push(studentId);
+  await event.save();
 
-  // // Enroll the student in the event
-  // await this.studentService.enrollInEvent(studentId, eventId);
+  // Enroll the student in the event
+  await this.studentService.enrollInEvent(studentId, eventId);
 }
 
 }

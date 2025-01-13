@@ -69,7 +69,7 @@ export class Events extends Document {
   enrolledStudents: string[];
 
 
-   @Prop({ required: true, default: false }) // Indicates if the event is paid
+  @Prop({ required: true, default: false }) // Indicates if the event is paid
   isPaid: boolean;
 
   @Prop() // Price is required if isPaid is true

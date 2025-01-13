@@ -1,5 +1,5 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { Document, Schema as MongooseSchema } from 'mongoose';
+import { Document, Schema as MongooseSchema, Types } from 'mongoose';
 import { CourseCurriculum } from '../../course-curriculm/entities/course-curriculm.entity';
 import { Faq } from '../../faqs/entities/faq.entity';
 import { Instructor } from '../../instructor/entities/instructor.entity';
@@ -66,6 +66,9 @@ export class Course extends Document {
 
   @Prop({ type: String, required: false })
   imageUrl?: string; // URL of the course image
+
+  @Prop({ type: [Types.ObjectId], ref: 'Student', default: [] }) // Array of user IDs who purchased the course
+  enrolledStudents: Types.ObjectId[];
 }
 
 export const CourseSchema = SchemaFactory.createForClass(Course);

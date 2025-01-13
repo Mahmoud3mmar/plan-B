@@ -4,14 +4,15 @@ import { EventsController } from './events.controller';
 import { MongooseModule } from '@nestjs/mongoose';
 import { Events, EventSchema } from './entities/event.entity';
 import { CloudinaryService } from '../cloudinary/cloudinary.service';
+import { FawryModule } from '../fawry/fawry.module';
 
 @Module({
-  imports: [MongooseModule.forFeature([{ name: Events.name, schema: EventSchema },
-
-  ])],
+  imports: [
+    MongooseModule.forFeature([{ name: Events.name, schema: EventSchema }]),
+    FawryModule,
+  ],
   controllers: [EventsController],
-  providers: [EventsService,CloudinaryService], 
-  exports: [EventsService] // Export EventsService if used in other modules
-
+  providers: [EventsService, CloudinaryService],
+  exports: [EventsService],
 })
 export class EventsModule {}

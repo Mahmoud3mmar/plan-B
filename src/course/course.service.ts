@@ -25,20 +25,26 @@ import { CourseCurriculum } from '../course-curriculm/entities/course-curriculm.
 import { Review } from '../review/entities/review.entity';
 import { Video } from '../vedio/entities/vedio.entity';
 // import { PaymentService } from '../payment/payment.service';
+import { v4 as uuidv4 } from 'uuid';
+import { PurchaseCourseDto } from './dto/purchase.course.dto';
+import { FawryService } from '../fawry/fawry.service'; // Import the FawryService
 
 @Injectable()
 export class CourseService {
   constructor(
     @InjectModel(Course.name) private readonly courseModel: Model<Course>,
     @InjectModel(Video.name) private readonly videoModel: Model<Video>,
-    @InjectModel(CourseCurriculum.name) private readonly courseCurriculumModel: Model<CourseCurriculum>,
+    @InjectModel(CourseCurriculum.name)
+    private readonly courseCurriculumModel: Model<CourseCurriculum>,
     @InjectModel(Faq.name) private readonly faqModel: Model<Faq>,
     @InjectModel(Review.name) private readonly reviewModel: Model<Review>,
-    @InjectModel(CourseCurriculum.name) private readonly CourseCurriculumModel: Model<CourseCurriculum>,
+    @InjectModel(CourseCurriculum.name)
+    private readonly CourseCurriculumModel: Model<CourseCurriculum>,
 
     // @InjectModel(User.name) private readonly userModel: Model<User>,
     private readonly CloudinaryService: CloudinaryService,
     private readonly CategoryService: CategoryService,
+    private readonly fawryService: FawryService, // Inject FawryService
 
     @InjectModel(Instructor.name)
     private readonly instructorModel: Model<Instructor>,
@@ -47,44 +53,48 @@ export class CourseService {
   async createCourse(createCourseDto: CreateCourseDto): Promise<Course> {
     try {
       const { categoryId, ...courseData } = createCourseDto;
-  
+
       // Check if category exists
       if (categoryId) {
-        const categoryExists = await this.CategoryService.doesCategoryExist(categoryId);
+        const categoryExists =
+          await this.CategoryService.doesCategoryExist(categoryId);
         if (!categoryExists) {
           throw new NotFoundException('Category not found');
         }
       }
-  
+
       // Add the category ID to the course data
       const newCourseData = {
         ...courseData,
         category: categoryId ? new Types.ObjectId(categoryId) : null, // Ensure categoryId is of type ObjectId
         instructor: null, // Initialize with null to allow for later assignment
       };
-  
+
       // Create the course
       const createdCourse = await this.courseModel.create(newCourseData);
-  
+
       // Create a new CourseCurriculum entity for the created course
       const courseCurriculum = new this.CourseCurriculumModel({
         CurriculumBlocks: [], // Initialize with an empty array for blocks
         courseId: createdCourse._id,
       });
-  
+
       // Save the CourseCurriculum
       const createdCourseCurriculum = await courseCurriculum.save();
-  
+
       // Update the created course with the curriculum ID by pushing to the array
       createdCourse.courseCurriculum.push(createdCourseCurriculum); // Push the new curriculum ID into the array
       await createdCourse.save();
-  
+
       // Update the category with the new course ID and increment courseCount
       if (categoryId) {
-        await this.CategoryService.addCourseToCategory(categoryId, createdCourse._id.toString());
+        await this.CategoryService.addCourseToCategory(
+          categoryId,
+          createdCourse._id.toString(),
+        );
         await this.CategoryService.incrementCourseCount(categoryId); // Increment course count
       }
-  
+
       return createdCourse;
     } catch (error) {
       if (error.name === 'ValidationError') {
@@ -113,14 +123,17 @@ export class CourseService {
       }
     }
   }
-  
+
   async uploadCourseImage(
     courseId: string,
-    image: Express.Multer.File
+    image: Express.Multer.File,
   ): Promise<{ message: string; imageUrl: string }> {
     try {
       const folderName = 'courseImages'; // Adjust folder name as needed
-      const uploadResult = await this.CloudinaryService.uploadImage(image, folderName);
+      const uploadResult = await this.CloudinaryService.uploadImage(
+        image,
+        folderName,
+      );
 
       // Find and update the course document with the new image URL
       const updatedCourse = await this.courseModel.findById(courseId);
@@ -136,7 +149,10 @@ export class CourseService {
         imageUrl: uploadResult.secure_url,
       };
     } catch (error) {
-      throw new InternalServerErrorException('Failed to upload image', error.message);
+      throw new InternalServerErrorException(
+        'Failed to upload image',
+        error.message,
+      );
     }
   }
 
@@ -162,7 +178,7 @@ export class CourseService {
       })
       .populate('category') // Populate category details
       .exec();
-  
+
     if (!course) {
       throw new NotFoundException(`Course with ID ${id} not found`);
     }
@@ -198,42 +214,51 @@ export class CourseService {
   async deleteCourse(courseId: string): Promise<void> {
     try {
       // Find the course to delete
-      const course = await this.courseModel.findById(courseId)
+      const course = await this.courseModel
+        .findById(courseId)
         .populate('videos')
         .populate('courseCurriculum')
         .populate('faqs')
         .populate('reviews')
         .exec();
-  
+
       if (!course) {
         throw new NotFoundException(`Course with ID ${courseId} not found`);
       }
-  
+
       // Delete related videos
       if (course.videos && course.videos.length > 0) {
-        await this.videoModel.deleteMany({ _id: { $in: course.videos } }).exec();
+        await this.videoModel
+          .deleteMany({ _id: { $in: course.videos } })
+          .exec();
       }
-  
+
       // Delete related course curriculums
       if (course.courseCurriculum && course.courseCurriculum.length > 0) {
-        await this.courseCurriculumModel.deleteMany({ _id: { $in: course.courseCurriculum } }).exec();
+        await this.courseCurriculumModel
+          .deleteMany({ _id: { $in: course.courseCurriculum } })
+          .exec();
       }
-  
+
       // Delete related FAQs
       if (course.faqs && course.faqs.length > 0) {
         await this.faqModel.deleteMany({ _id: { $in: course.faqs } }).exec();
       }
-  
+
       // Delete related reviews
       if (course.reviews && course.reviews.length > 0) {
-        await this.reviewModel.deleteMany({ _id: { $in: course.reviews } }).exec();
+        await this.reviewModel
+          .deleteMany({ _id: { $in: course.reviews } })
+          .exec();
       }
-  
+
       // Update the category (if applicable)
       if (course.category) {
-        await this.CategoryService.decrementCourseCount(course.category.toString());
+        await this.CategoryService.decrementCourseCount(
+          course.category.toString(),
+        );
       }
-  
+
       // Delete the course
       await this.courseModel.findByIdAndDelete(courseId).exec();
     } catch (error) {
@@ -286,14 +311,17 @@ export class CourseService {
       rating?: number;
       level?: string;
     },
-  ): Promise<{ courses: Course[]; total: number; totalPages?: number }> { // totalPages is optional if no pagination
+  ): Promise<{ courses: Course[]; total: number; totalPages?: number }> {
+    // totalPages is optional if no pagination
     const query: FilterQuery<Course> = this.buildQuery(filters);
     const sort = this.buildSort(sortOrder);
-  
+
     try {
       const total = await this.courseModel.countDocuments(query).exec();
-      
-      let coursesQuery = this.courseModel.find(query).sort(sort)
+
+      let coursesQuery = this.courseModel
+        .find(query)
+        .sort(sort)
         .populate('courseCurriculum')
         .populate({
           path: 'courseCurriculum',
@@ -310,27 +338,24 @@ export class CourseService {
         .populate('faqs')
         .populate('reviews')
         .populate('category');
-      
+
       // Apply pagination only if `page` and `limit` are provided
       if (page && limit) {
         const skip = this.calculateSkip(page, limit);
         coursesQuery = coursesQuery.skip(skip).limit(limit);
       }
-  
+
       const courses = await coursesQuery.exec();
-  
+
       // Calculate totalPages only if pagination is used
       const totalPages = limit ? Math.ceil(total / limit) : undefined;
-  
+
       return { courses, total, totalPages };
     } catch (error) {
       console.error('Error fetching courses:', error);
       throw new InternalServerErrorException('Failed to fetch courses');
     }
   }
-  
-  
-  
 
   /**
    * Build a query object based on provided filters.
@@ -468,4 +493,100 @@ export class CourseService {
 
   //   return true;
   // }
+
+  async purchaseCourse(
+    courseId: string,
+    purchaseDto: PurchaseCourseDto,
+    userId: string,
+  ): Promise<string> {
+    try {
+      // Retrieve the course
+      const course = await this.courseModel.findById(courseId).exec();
+      if (!course) {
+        throw new NotFoundException(`Course with ID ${courseId} not found`);
+      }
+
+      // Check if the course is paid
+      if (!course.isPaid) {
+        throw new BadRequestException(
+          'This course is not marked as paid. Purchase cannot proceed.',
+        );
+      }
+      // Convert userId to ObjectId
+      const userIdAsObjectId = new Types.ObjectId(userId);
+      // Add the user ID to the enrolledStudents array
+      if (!course.enrolledStudents.includes(userIdAsObjectId)) {
+        course.enrolledStudents.push(userIdAsObjectId);
+        await course.save();
+      }
+
+      // Create the charge request DTO
+      const merchantRefNum = this.generateMerchantRefNum(userId.toString());
+      const createChargeRequestDto = {
+        merchantCode: '', // Ensure this is set in your environment
+        merchantRefNum: merchantRefNum,
+        customerMobile: purchaseDto.customerMobile,
+        customerEmail: purchaseDto.customerEmail,
+        customerName: purchaseDto.customerName,
+        language: 'en-gb',
+        chargeItems: [
+          {
+            itemId: course._id.toString(),
+            description: course.name,
+            price: course.price,
+            quantity: 1,
+          },
+        ],
+        returnUrl: 'https://www.google.com/', // Your actual return URL
+        paymentExpiry: 0, // Set payment expiry as needed
+      };
+
+      // Call Fawry service to create charge request
+      const redirectUrl = await this.fawryService.createChargeRequest(
+        createChargeRequestDto,
+      );
+
+      // Ensure redirectUrl is a string
+      if (typeof redirectUrl !== 'string') {
+        throw new InternalServerErrorException(
+          'Invalid redirect URL returned from Fawry service',
+        );
+      }
+
+      // Return the redirect URL
+      return redirectUrl;
+    } catch (error) {
+      // Handle specific errors
+      if (error instanceof NotFoundException) {
+        throw new NotFoundException(error.message);
+      } else if (error instanceof BadRequestException) {
+        throw new BadRequestException(error.message);
+      } else {
+        throw new InternalServerErrorException(
+          'An unexpected error occurred while processing the payment request',
+        );
+      }
+    }
+  }
+
+  private generateMerchantRefNum(userId: string): string {
+    const uuid = uuidv4(); // Generate a UUID
+    return `${userId}-${uuid}`; // Combine userId and UUID
+  }
+
+  async userHasAccessToCourse(
+    courseId: string,
+    userId: string,
+  ): Promise<boolean> {
+    const course = await this.courseModel.findById(courseId).exec();
+    if (!course) {
+      throw new NotFoundException(`Course with ID ${courseId} not found`);
+    }
+
+    // Convert userId to ObjectId
+    const userIdAsObjectId = new Types.ObjectId(userId);
+
+    // Check if the user is enrolled in the course
+    return course.enrolledStudents.includes(userIdAsObjectId);
+  }
 }

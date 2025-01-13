@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, ParseIntPipe, Query, Put, UseGuards, UseInterceptors, UploadedFile, BadRequestException, DefaultValuePipe, HttpStatus, HttpCode, NotFoundException, InternalServerErrorException } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, ParseIntPipe, Query, Put, UseGuards, UseInterceptors, UploadedFile, BadRequestException, DefaultValuePipe, HttpStatus, HttpCode, NotFoundException, InternalServerErrorException, Res ,Request, ForbiddenException} from '@nestjs/common';
 import { CourseService } from './course.service';
 import { CreateCourseDto } from './dto/create.course.dto';
 import { UpdateCourseDto } from './dto/update.course.dto';
@@ -11,6 +11,9 @@ import { RolesGuard } from '../auth/guards/role.guards';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { GetCoursesDto } from './dto/get.courses.dto';
 import { PaginationDto } from '../review/dto/get.all.reviews.paginated.dto';
+import { PurchaseCourseDto } from './dto/purchase.course.dto';
+import { Response } from 'express';
+
 @ApiBearerAuth()
 @ApiTags('course')
 @Controller('course')
@@ -226,4 +229,50 @@ async findAllCourses(
   ) {
     return this.courseService.assignInstructorToCourse(courseId, instructorId);
   }
+
+
+
+  @Post(':id/purchase')
+  @UseGuards(AccessTokenGuard)
+  async purchaseCourse(
+    @Param('id') id: string,
+    @Body() purchaseDto: PurchaseCourseDto,
+    @Request() req: any,
+    @Res() res: Response
+  ): Promise<any> {
+    const user = req.user;
+    const userId = user.sub; // Extract user ID from the JWT token
+
+    // Set customer details from the user object
+    purchaseDto.customerName = user.firstName + ' ' + user.lastName;
+    purchaseDto.customerEmail = user.email;
+
+    // Call the purchaseCourse method from the CourseService
+    const redirectUrl = await this.courseService.purchaseCourse(id, purchaseDto, userId);
+    
+    // Return the redirect URL in the response
+    return res.json({ redirectUrl });
+  }
+
+
+@Get(':id/view')
+@UseGuards(AccessTokenGuard)
+async viewCourse(
+  @Param('id') id: string,
+  @Request() req: any,
+  @Res() res: Response
+): Promise<any> {
+  const user = req.user;
+  const userId = user.sub; // Extract user ID from the JWT token
+
+  // Check if the user has access to the course
+  const hasAccess = await this.courseService.userHasAccessToCourse(id, userId);
+  if (!hasAccess) {
+    throw new ForbiddenException('You do not have access to this course');
+  }
+
+  // Retrieve the course details
+  const course = await this.courseService.findOne(id);
+  return res.json(course);
+}
 }

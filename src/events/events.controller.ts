@@ -16,6 +16,9 @@ import {
   Query,
   NotFoundException,
   UsePipes,
+  Request,
+  Res,
+  UseGuards,
 } from '@nestjs/common';
 import { EventsService } from './events.service';
 import { CreateEventDto } from './dto/create.event.dto';
@@ -35,6 +38,12 @@ import { PaginateDto } from './dto/get.events.dto';
 import { ObjectIdValidationPipe } from './pipes/object-id-validation.pipe';
 import { AddSpeakerDto } from './dto/add-speakers.dto';
 import { AgendaDto } from './dto/agenda.dto';
+import { PurchaseEventDto } from './dto/purchase.event.dto';
+
+import { Response } from 'express';
+import { AccessTokenGuard } from 'src/auth/guards/accessToken.guard';
+import { RolesGuard } from 'src/auth/guards/role.guards';
+
 @ApiBearerAuth()
 @ApiTags('events')
 @Controller('events')
@@ -279,4 +288,28 @@ export class EventsController {
     return this.eventsService.getAgendaById(eventId, agendaId);
   }
 
+  @Post(':id/purchase')
+  @UseGuards(AccessTokenGuard, RolesGuard)
+  async purchaseEvent(
+    @Param('id') id: string,
+    @Body() purchaseDto: PurchaseEventDto,
+    @Request() req: any,
+    @Res() res: Response
+  ): Promise<any> {
+    const user = req.user;
+    const userId = user.sub; // Extract user ID from the JWT token
+
+    // Set customer details from the user object
+    purchaseDto.customerName = user.firstName + ' ' + user.lastName;
+    purchaseDto.customerEmail = user.email;
+
+    // Call the purchaseEvent method from the EventsService
+    const redirectUrl = await this.eventsService.purchaseEvent(id, purchaseDto, userId);
+    
+    // Return the redirect URL in the response
+    return res.json({ redirectUrl });
+  }
+
+
+  
 }
