@@ -1,18 +1,44 @@
-import { IsString, IsNumber, IsOptional } from 'class-validator';
+
+
+import { ApiProperty } from '@nestjs/swagger';
+import { trainingLevel } from '../entities/subtraining.entity';
+import { IsNotEmpty, IsString, IsEmail, IsPhoneNumber, IsEnum } from 'class-validator';
 
 export class PurchaseSubTrainingDto {
-    // @IsString()
-    // subTrainingId: string; // Ensure this is a string
+  @IsNotEmpty()
+  @IsString()
+  summerTrainingId: string;
 
-    @IsString()
-    customerMobile: string;
+  @IsNotEmpty()
+  @IsString()
+  subTrainingId: string;
 
-    @IsOptional()
-    @IsString()
-    customerEmail?: string;
+  @IsNotEmpty()
+  @IsString()
+  university: string;
 
-    @IsOptional()
-    @IsString()
-    customerName?: string;
+  @ApiProperty({ description: 'Level of the sub-training', enum: trainingLevel })
+  @IsNotEmpty()
+  @IsEnum(trainingLevel)
+  level: trainingLevel;
 
+  @IsNotEmpty()
+  @IsEmail()
+  email: string;
+
+  @IsNotEmpty()
+  @IsString()
+  customerFirstName: string;
+
+  @IsNotEmpty()
+  @IsString()
+  customerLastName: string;
+
+  @IsNotEmpty()
+  @IsString()
+  nationality: string;
+
+  @IsNotEmpty()
+//   @IsPhoneNumber()
+  customerMobile: string;
 }

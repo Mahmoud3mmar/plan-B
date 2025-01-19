@@ -1,6 +1,6 @@
 import { Controller, Get, Post, Body, Patch, Param, Delete, UseInterceptors, UploadedFile, Query, NotFoundException, BadRequestException, Put, InternalServerErrorException, UseGuards, Res, Request } from '@nestjs/common';
 import { SubtrainingService } from './subtraining.service';
-import { ApiBearerAuth, ApiBody, ApiConsumes, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiBody, ApiConsumes, ApiOperation, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { CreateSubTrainingDto } from './dto/create.subtraining.dto';
 import { SubTrainingsPaginateDto } from './dto/get.sub.trainings.dto';
@@ -172,22 +172,53 @@ export class SubtrainingController {
     return this.subtrainingService.getTopicsBySubTrainingId(subTrainingId);
   }
 
-  @Post(':id/purchase')
-  @UseGuards(AccessTokenGuard, RolesGuard)
-  async purchaseSubTraining(
-    @Param('id') id: string,
-    @Body() purchaseDto: PurchaseSubTrainingDto,
-    @Request() req: any,
-    @Res() res: Response
-  ): Promise<any> {
-    const user = req.user;
-    const userId = req.user.sub; // Extract user ID from the JWT token
+  // @Post(':id/purchase')
+  // @UseGuards(AccessTokenGuard, RolesGuard)
+  // async purchaseSubTraining(
+  //   @Param('id') id: string,
+  //   @Body() purchaseDto: PurchaseSubTrainingDto,
+  //   @Request() req: any,
+  //   @Res() res: Response
+  // ): Promise<any> {
+  //   const user = req.user;
+  //   const userId = req.user.sub; // Extract user ID from the JWT token
 
-    purchaseDto.customerName = user.firstName + ' ' + user.lastName;
-    purchaseDto.customerEmail = user.email;
+  //   purchaseDto.customerName = user.firstName + ' ' + user.lastName;
+  //   purchaseDto.customerEmail = user.email;
 
-    const redirectUrl = await this.subtrainingService.purchaseSubTraining(id, purchaseDto,userId);
+  //   const redirectUrl = await this.subtrainingService.purchaseSubTraining(id, purchaseDto,userId);
     
-    return res.json({ redirectUrl });
-  }
+  //   return res.json({ redirectUrl });
+  // }
+
+  @Post(':id/purchase')
+@UseGuards(AccessTokenGuard, RolesGuard)
+async purchaseSubTraining(
+  @Param('id') id: string,
+  @Body() purchaseDto: PurchaseSubTrainingDto,
+  @Request() req: any,
+  @Res() res: Response,
+): Promise<any> {
+  const user = req.user;
+  const userId = req.user.sub; // Extract user ID from the JWT token
+
+  // Pass the purchase data and user ID to the service
+  const redirectUrl = await this.subtrainingService.purchaseSubTraining(id, purchaseDto, userId);
+
+  // Return the redirect URL to the client
+  return res.json({ redirectUrl });
+}
+
+@Get('purchase/data')
+@ApiOperation({ summary: 'Get all purchase records with pagination' })
+@ApiQuery({ name: 'page', required: false, type: Number, description: 'Page number (default: 1)' })
+@ApiQuery({ name: 'limit', required: false, type: Number, description: 'Records per page (default: 10)' })
+async getAllPurchases(
+  @Query('page') page: number = 1,
+  @Query('limit') limit: number = 10,
+) {
+  return  await this.subtrainingService.getAllPurchases(page, limit);
+
+ 
+}
 }

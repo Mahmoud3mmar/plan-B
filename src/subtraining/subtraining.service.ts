@@ -15,6 +15,7 @@ import { FawryService } from '../fawry/fawry.service';
 import { FawryCallbackDto } from 'src/fawry/dto/fawry-callback.dto';
 import { FawryOrders } from '../fawry/entities/fawry.entity';
 import { v4 as uuidv4 } from 'uuid'; // Ensure you import uuidv4
+import { subTrainingPurchase } from './entities/subtraining.purchase.entity';
 
 @Injectable()
 export class SubtrainingService {
@@ -23,6 +24,7 @@ export class SubtrainingService {
     @InjectModel(SummerTraining.name) private readonly summerTrainingModel: Model<SummerTraining>,
     @InjectModel(Instructor.name) private readonly InstructorModel: Model<Instructor>,
     @InjectModel(FawryOrders.name) private readonly fawryModel: Model<FawryOrders>,
+    @InjectModel(subTrainingPurchase.name) private readonly subTrainingPurchaseModel: Model<subTrainingPurchase>,
 
     private readonly cloudinaryService: CloudinaryService,
     private readonly fawryService: FawryService,
@@ -332,78 +334,93 @@ export class SubtrainingService {
     return subTraining.topic; // Assuming 'topic' is an array of TopicDto
   }
 
-
-  async purchaseSubTraining(id: string, purchaseDto: PurchaseSubTrainingDto,userId:String): Promise<string> {
+  async purchaseSubTraining(
+    id: string,
+    purchaseDto: PurchaseSubTrainingDto,
+    userId: string,
+  ): Promise<string> {
     try {
-        // // Log the incoming purchaseDto for debugging
-        // console.log('Purchase DTO:', purchaseDto);
-        // console.log('Sub-training ID:', id); // Log the parsed subTrainingId
-
-        //  console.log(userId)
-         const merchantRefNum = this.generateMerchantRefNum(userId.toString());
-
-        // Retrieve the sub-training
-        const subTraining = await this.subTrainingModel.findById(id).exec();
-        if (!subTraining) {
-            throw new NotFoundException(`Sub-training with ID ${id} not found`);
-        }
-
-        // Check if there are available seats
-        if (subTraining.AvailableSeats <= 0) {
-            throw new BadRequestException('No seats available for this sub-training');
-        }
-
-        // Determine the price based on offer
-        const amount = subTraining.price;
-
-        // Create the charge request DTO
-        const createChargeRequestDto = {
-            merchantCode: '', // Ensure this is set in your environment
-            merchantRefNum: merchantRefNum, // Ensure this is a primitive string
-            customerMobile: purchaseDto.customerMobile,
-            customerEmail: purchaseDto.customerEmail,
-            customerName: purchaseDto.customerName,
-            language: 'en-gb',
-            chargeItems: [
-                {
-                    itemId: subTraining._id.toString(),
-                    description: subTraining.name,
-                    price: amount,
-                    quantity: 1,
-                },
-            ],
-            returnUrl: 'https://www.google.com/', // Your actual return URL
-            paymentExpiry: 0, // 24 hours in milliseconds
-        };
-
-        // Call Fawry service to create charge request
-        const redirectUrl = await this.fawryService.createChargeRequest(createChargeRequestDto);
-
-        // Log the redirect URL for debugging
-        console.log('Redirect URL:', redirectUrl);
-
-        // Ensure redirectUrl is a string
-        if (typeof redirectUrl !== 'string') { 
-            throw new InternalServerErrorException('Invalid redirect URL returned from Fawry service');
-        }
-
-        // Return the redirect URL
-        return redirectUrl; // Return the URL directly
-
+      // Generate a unique merchantRefNum
+      const merchantRefNum = this.generateMerchantRefNum(userId.toString());
+  
+      // Retrieve the sub-training
+      const subTraining = await this.subTrainingModel.findById(id).exec();
+      if (!subTraining) {
+        throw new NotFoundException(`Sub-training with ID ${id} not found`);
+      }
+  
+      // Check if there are available seats
+      if (subTraining.AvailableSeats <= 0) {
+        throw new BadRequestException('No seats available for this sub-training');
+      }
+  
+      // Determine the price based on offer
+      const amount = subTraining.price;
+  
+      // Create the charge request DTO
+      const createChargeRequestDto = {
+        merchantCode: process.env.FAWRY_MERCHANT_CODE, // Ensure this is set in your environment
+        merchantRefNum: merchantRefNum, // Use the generated unique reference
+        customerMobile: purchaseDto.customerMobile,
+        customerEmail: purchaseDto.email,
+        customerName: `${purchaseDto.customerFirstName} ${purchaseDto.customerLastName}`,
+        language: 'en-gb',
+        chargeItems: [
+          {
+            itemId: subTraining._id.toString(),
+            description: subTraining.name,
+            price: amount,
+            quantity: 1,
+          },
+        ],
+        returnUrl: 'https://www.google.com/', // Your actual return URL
+        paymentExpiry: Date.now() + 24 * 60 * 60 * 1000, // 24 hours in milliseconds
+      };
+  
+      // Call Fawry service to create charge request
+      const redirectUrl = await this.fawryService.createChargeRequest(createChargeRequestDto);
+  
+      // Log the redirect URL for debugging
+      console.log('Redirect URL:', redirectUrl);
+  
+      // Ensure redirectUrl is a string
+      if (typeof redirectUrl !== 'string') {
+        throw new InternalServerErrorException('Invalid redirect URL returned from Fawry service');
+      }
+  
+      // Save the purchase data in the database
+      const purchaseData = {
+        // userId: new Types.ObjectId(userId),
+        summerTrainingId: new Types.ObjectId(purchaseDto.summerTrainingId),
+        subTrainingId: new Types.ObjectId(purchaseDto.subTrainingId),
+        university: purchaseDto.university,
+        level: purchaseDto.level,
+        email: purchaseDto.email,
+        firstName: purchaseDto.customerFirstName,
+        lastName: purchaseDto.customerLastName,
+        nationality: purchaseDto.nationality,
+        phoneNumber: purchaseDto.customerMobile,
+        paymentStatus: 'PENDING', // Initial status
+        paymentReference: merchantRefNum, // Unique reference for the payment
+      };
+  
+      // Save the purchase data to the database (assuming you have a model for purchases)
+      await this.subTrainingPurchaseModel.create(purchaseData);
+  
+      // Return the redirect URL
+      return redirectUrl;
     } catch (error) {
-        // Handle specific errors
-        console.log(error)
-        if (error instanceof NotFoundException) {
-            throw new NotFoundException(error.message);
-        } else if (error instanceof BadRequestException) {
-            throw new BadRequestException(error.message);
-        } else if (error instanceof InternalServerErrorException) {
-            throw new InternalServerErrorException('An error occurred while processing the payment request');
-        } else {
-            // Log unexpected errors
-            console.error('Unexpected error:', error);
-            throw new InternalServerErrorException('An unexpected error occurred');
-        }
+      console.log(error);
+      if (error instanceof NotFoundException) {
+        throw new NotFoundException(error.message);
+      } else if (error instanceof BadRequestException) {
+        throw new BadRequestException(error.message);
+      } else if (error instanceof InternalServerErrorException) {
+        throw new InternalServerErrorException('An error occurred while processing the payment request');
+      } else {
+        console.error('Unexpected error:', error);
+        throw new InternalServerErrorException('An unexpected error occurred');
+      }
     }
   }
   
@@ -412,6 +429,38 @@ export class SubtrainingService {
     return `${userId}-${uuid}`; // Combine userId and UUID
   }
 
+
+  async getAllPurchases(page: number = 1, limit: number = 10): Promise<any> {
+    try {
+      // Ensure page and limit are positive integers
+      page = Math.max(1, page);
+      limit = Math.max(1, limit);
+  
+      const skip = (page - 1) * limit;
+  
+      // Perform data fetching and total count in parallel
+      const [purchases, total] = await Promise.all([
+        this.subTrainingPurchaseModel.find().skip(skip).limit(limit).exec(),
+        this.subTrainingPurchaseModel.countDocuments().exec(),
+      ]);
+  
+      if (!purchases || purchases.length === 0) {
+        throw new NotFoundException('No purchase records found');
+      }
+  
+      // Return a structured response
+      return {
+        data: purchases,
+        total,
+        page,
+        limit,
+        totalPages: Math.ceil(total / limit),
+      };
+    } catch (error) {
+      console.error('Error fetching purchase data:', error.message || error);
+      throw new InternalServerErrorException('Failed to fetch purchase data');
+    }
+  }
 }
 
 
