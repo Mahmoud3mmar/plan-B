@@ -3,7 +3,6 @@ import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { IsNotEmpty, IsEmail, IsPhoneNumber } from 'class-validator';
 import { trainingLevel } from './subtraining.entity';
 import { Level } from 'src/course/utils/levels.enum';
-import { Nationality } from '../nationality.enum';
 
 
 @Schema()
@@ -40,8 +39,8 @@ export class subTrainingPurchase extends Document {
   lastName: string; // Last name of the student
 
   @IsNotEmpty()
-  @Prop({ type: String, enum: Nationality })
-  nationality: Nationality; // Nationality of the student
+  @Prop({ required: true })
+  nationality: string; // Nationality of the student
 
   @IsNotEmpty()
   @IsPhoneNumber()

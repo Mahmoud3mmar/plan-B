@@ -16,6 +16,7 @@ import { FawryCallbackDto } from 'src/fawry/dto/fawry-callback.dto';
 import { FawryOrders } from '../fawry/entities/fawry.entity';
 import { v4 as uuidv4 } from 'uuid'; // Ensure you import uuidv4
 import { subTrainingPurchase } from './entities/subtraining.purchase.entity';
+import { NationalityI18nService } from 'src/nationality-i18n/nationality-i18n.service';
 
 @Injectable()
 export class SubtrainingService {
@@ -28,6 +29,7 @@ export class SubtrainingService {
 
     private readonly cloudinaryService: CloudinaryService,
     private readonly fawryService: FawryService,
+    private readonly NationalityI18nService: NationalityI18nService,
 
   ) {}
   async create(createSubTrainingDto: CreateSubTrainingDto, image: Express.Multer.File): Promise<SubTrainingEntity> {
@@ -333,13 +335,28 @@ export class SubtrainingService {
     // Return the topics from the sub-training
     return subTraining.topic; // Assuming 'topic' is an array of TopicDto
   }
+  validateNationality(nationality:string) {
+    // const { nationality } = inputNationalityDto;
+    const allNationalities = this.NationalityI18nService.getAllNationalities();
 
+    // Check if the nationality exists in the list
+    const foundNationality = allNationalities.find(n => n.nationality.toLowerCase() === nationality.toLowerCase());
+
+    if (!foundNationality) {
+      throw new NotFoundException(`Nationality "${nationality}" not found`);
+    }
+
+    return foundNationality; // Return the found nationality object
+  }
   async purchaseSubTraining(
     id: string,
     purchaseDto: PurchaseSubTrainingDto,
     userId: string,
   ): Promise<string> {
     try {
+      // Validate the nationality before proceeding
+      this.validateNationality(purchaseDto.nationality);
+
       // Generate a unique merchantRefNum
       const merchantRefNum = this.generateMerchantRefNum(userId.toString());
   
@@ -390,7 +407,6 @@ export class SubtrainingService {
   
       // Save the purchase data in the database
       const purchaseData = {
-        // userId: new Types.ObjectId(userId),
         summerTrainingId: new Types.ObjectId(purchaseDto.summerTrainingId),
         subTrainingId: new Types.ObjectId(purchaseDto.subTrainingId),
         university: purchaseDto.university,

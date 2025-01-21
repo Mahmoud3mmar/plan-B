@@ -36,7 +36,7 @@ export class PurchaseSubTrainingDto {
 
   @IsNotEmpty()
   @IsString()
-  nationality: string;
+  nationality: string; // The name of the nationality input by the user
 
   @IsNotEmpty()
 //   @IsPhoneNumber()

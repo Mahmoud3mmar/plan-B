@@ -9,6 +9,7 @@ import { Instructor, InstructorSchema } from 'src/instructor/entities/instructor
 import { FawryOrders, FawryOrdersSchema } from 'src/fawry/entities/fawry.entity';
 import { CloudinaryService } from 'src/cloudinary/cloudinary.service';
 import { subTrainingPurchase, subTrainingPurchaseSchema } from './entities/subtraining.purchase.entity';
+import { NationalityI18nService } from 'src/nationality-i18n/nationality-i18n.service';
 
 
 @Module({
@@ -22,7 +23,7 @@ import { subTrainingPurchase, subTrainingPurchaseSchema } from './entities/subtr
     ]),
     FawryModule,
   ],
-  providers: [SubtrainingService,CloudinaryService],
+  providers: [SubtrainingService,CloudinaryService,NationalityI18nService],
   controllers: [SubtrainingController],
 })
 export class SubtrainingModule {}
