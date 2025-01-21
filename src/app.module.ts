@@ -23,6 +23,7 @@ import { CurriculumBlockModule } from './curriculum-block/curriculum.block.modul
 import { AwsModule } from './aws/aws.module';
 import { ContactUsModule } from './contact-us/contact-us.module';
 import { FawryModule } from './fawry/fawry.module';
+import { NationalityI18nModule } from './nationality-i18n/nationality-i18n.module';
 
 @Module({
   imports: [AuthModule, UserModule, CourseModule, FaqsModule, InstructorModule, ReviewModule, SummertrainingModule,VedioModule,
@@ -41,7 +42,8 @@ import { FawryModule } from './fawry/fawry.module';
   CurriculumBlockModule,
   AwsModule,
   ContactUsModule,
-  FawryModule,  
+  FawryModule,
+  NationalityI18nModule,  
 
 ],
   controllers: [AppController], 
