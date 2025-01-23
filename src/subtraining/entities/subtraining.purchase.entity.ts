@@ -55,6 +55,10 @@ export class subTrainingPurchase extends Document {
 
   @Prop({ default: Date.now })
   createdAt: Date; // Timestamp of when the purchase was created
+
+  @IsNotEmpty()
+  @Prop({ required: true })
+  faculty: string; // Add faculty property
 }
 
 export const subTrainingPurchaseSchema = SchemaFactory.createForClass(subTrainingPurchase);

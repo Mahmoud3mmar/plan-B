@@ -1,5 +1,3 @@
-
-
 import { ApiProperty } from '@nestjs/swagger';
 import { trainingLevel } from '../entities/subtraining.entity';
 import { IsNotEmpty, IsString, IsEmail, IsPhoneNumber, IsEnum } from 'class-validator';
@@ -41,4 +39,8 @@ export class PurchaseSubTrainingDto {
   @IsNotEmpty()
 //   @IsPhoneNumber()
   customerMobile: string;
+
+  @IsNotEmpty()
+  @IsString()
+  faculty: string;
 }

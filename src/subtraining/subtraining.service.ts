@@ -410,14 +410,15 @@ export class SubtrainingService {
         summerTrainingId: new Types.ObjectId(purchaseDto.summerTrainingId),
         subTrainingId: new Types.ObjectId(purchaseDto.subTrainingId),
         university: purchaseDto.university,
+        faculty: purchaseDto.faculty,
         level: purchaseDto.level,
         email: purchaseDto.email,
         firstName: purchaseDto.customerFirstName,
         lastName: purchaseDto.customerLastName,
         nationality: purchaseDto.nationality,
         phoneNumber: purchaseDto.customerMobile,
-        paymentStatus: 'PENDING', // Initial status
-        paymentReference: merchantRefNum, // Unique reference for the payment
+        paymentStatus: 'PENDING',
+        paymentReference: merchantRefNum,
       };
   
       // Save the purchase data to the database (assuming you have a model for purchases)
