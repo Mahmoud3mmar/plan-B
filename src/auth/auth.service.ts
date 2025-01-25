@@ -349,8 +349,8 @@ export class AuthService {
     otp: string,
     otpToken: string,
   ): Promise<void> {
-    // const verificationLink = `${process.env.FRONTEND_URL}/verify?token=${otpToken}`;
-    const verificationLink = `${process.env.FRONTEND_URL}?token=${otpToken}`;
+    // const verificationLink = `${process.env.FRONTEND_URL_Otp}/verify?token=${otpToken}`;
+    const verificationLink = `${process.env.FRONTEND_URL_Otp}?token=${otpToken}`;
 
     const mailOptions = {
       from: process.env.NodeMailer_USER,
@@ -397,7 +397,7 @@ export class AuthService {
     await user.save();
 
     // Construct the reset link
-    const resetLink = `${process.env.FRONTEND_URL}/reset/password?token=${token}`;
+    const resetLink = `${process.env.FRONTEND_URL_Reset}/reset/password?token=${token}`;
 
     // Set up email options
     const mailOptions = {
