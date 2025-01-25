@@ -350,7 +350,7 @@ export class AuthService {
     otpToken: string,
   ): Promise<void> {
     // const verificationLink = `${process.env.FRONTEND_URL}/verify?token=${otpToken}`;
-    const verificationLink = `${process.env.FRONTEND_URL}/verify?token=${otpToken}`;
+    const verificationLink = `${process.env.FRONTEND_URL}?token=${otpToken}`;
 
     const mailOptions = {
       from: process.env.NodeMailer_USER,
