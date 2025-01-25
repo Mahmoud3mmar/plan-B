@@ -43,7 +43,7 @@ export class subTrainingPurchase extends Document {
   nationality: string; // Nationality of the student
 
   @IsNotEmpty()
-  @IsPhoneNumber()
+  // @IsPhoneNumber()
   @Prop({ required: true })
   phoneNumber: string; // Phone number of the student
 
