@@ -549,7 +549,7 @@ export class CourseService {
             quantity: 1,
           },
         ],
-        returnUrl: 'https://www.google.com/', // Your actual return URL
+        returnUrl: 'http://Planp-learning.com', // Your actual return URL
         paymentExpiry: 0, // Set payment expiry as needed
       };
 

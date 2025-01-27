@@ -24,6 +24,7 @@ export class FawryController {
     const redirectUrl = await this.fawryService.createChargeRequest(createChargeRequestDto);
     return { redirectUrl };
   }
+  
   @Post('callback')
   @HttpCode(200)
   async handleCallback(@Body() fawryCallbackDto: FawryCallbackDto): Promise<void> {
