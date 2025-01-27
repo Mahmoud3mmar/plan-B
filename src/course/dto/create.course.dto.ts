@@ -37,6 +37,7 @@ export class CreateCourseDto {
   })
   @IsNotEmpty()
   @IsNumber()
+  @Transform(({ value }) => Number(value))
   numberOfLessons: number;
 
   @ApiProperty({
@@ -45,6 +46,7 @@ export class CreateCourseDto {
   })
   @IsNotEmpty()
   @IsNumber()
+  @Transform(({ value }) => Number(value))
   numberOfQuizzes: number;
 
   @ApiProperty({
