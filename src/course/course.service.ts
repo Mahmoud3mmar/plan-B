@@ -50,14 +50,16 @@ export class CourseService {
     private readonly instructorModel: Model<Instructor>,
     // private readonly paymentService: PaymentService,
   ) {}
-  async createCourse(createCourseDto: CreateCourseDto): Promise<Course> {
+  async createCourse(
+    createCourseDto: CreateCourseDto,
+    image: Express.Multer.File,
+  ): Promise<Course> {
     try {
       const { categoryId, ...courseData } = createCourseDto;
 
       // Check if category exists
       if (categoryId) {
-        const categoryExists =
-          await this.CategoryService.doesCategoryExist(categoryId);
+        const categoryExists = await this.CategoryService.doesCategoryExist(categoryId.toString());
         if (!categoryExists) {
           throw new NotFoundException('Category not found');
         }
@@ -72,6 +74,16 @@ export class CourseService {
 
       // Create the course
       const createdCourse = await this.courseModel.create(newCourseData);
+
+      // Handle image upload if provided
+      if (image) {
+        const uploadResult = await this.CloudinaryService.uploadImage(
+          image,
+          'courseImages',
+        );
+        createdCourse.imageUrl = uploadResult.secure_url; // Save the image URL to the course
+        await createdCourse.save();
+      }
 
       // Create a new CourseCurriculum entity for the created course
       const courseCurriculum = new this.CourseCurriculumModel({
@@ -89,10 +101,10 @@ export class CourseService {
       // Update the category with the new course ID and increment courseCount
       if (categoryId) {
         await this.CategoryService.addCourseToCategory(
-          categoryId,
+          categoryId.toString(),
           createdCourse._id.toString(),
         );
-        await this.CategoryService.incrementCourseCount(categoryId); // Increment course count
+        await this.CategoryService.incrementCourseCount(categoryId.toString());
       }
 
       return createdCourse;

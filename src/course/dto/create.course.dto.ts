@@ -3,6 +3,7 @@ import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Level } from '../utils/levels.enum';
 import { CourseCategory } from '../utils/course.category';
 import { Transform } from 'class-transformer';
+import { Types } from 'mongoose';
 
 // DTO for creating a Course
 export class CreateCourseDto {
@@ -50,25 +51,42 @@ export class CreateCourseDto {
     description: 'The price of the course',
     example: 99.99,
   })
-  @IsNotEmpty()
+  @IsOptional()
+  @Transform(({ value }) => {
+    if (value === '') return undefined;
+    return Number(value);
+  })
   @IsNumber()
-  price: number; // Decimal value, represented as a number
+  price?: number;
 
   @ApiPropertyOptional({
     description: 'Indicates if the course is paid or free',
     example: true,
   })
+  @Transform(({ value }) => {
+    if (value === 'true') return true;
+    if (value === 'false') return false;
+    return value;
+  })
   @IsBoolean()
-  isPaid: boolean; // Indicates if the course is paid or free
+  isPaid: boolean;
 
   @ApiProperty({
     description: 'The category of the course',
     example: CourseCategory.Nursing, // Adjust as needed, or provide a list of examples if desired
     enum: CourseCategory, // This provides the enum values in the API documentation
   })
-  @IsString()
-  categoryId: string;
+  // @IsString()
+  // categoryId: string;
 
- 
-
+  @IsNotEmpty()
+  @Transform(({ value }) => new Types.ObjectId(value))
+  categoryId: Types.ObjectId;
+  
+  @ApiProperty({ description: 'URL to the course image', required: false })
+  @IsOptional()
+  @IsString() // or @IsBase64() if you want to validate base64 format
+  image?: string; // Optional image field
 }
+
+

@@ -24,6 +24,7 @@ export class CourseController {
   @UseGuards(AccessTokenGuard,RolesGuard)
   @Roles(Role.ADMIN)  
   @HttpCode(HttpStatus.CREATED)
+  @UseInterceptors(FileInterceptor('image'))
   @ApiOperation({ summary: 'Create a new course' })
   @ApiBody({
     description: 'Data to create a new course',
@@ -48,9 +49,13 @@ export class CourseController {
   })
   async createCourse(
     @Body() createCourseDto: CreateCourseDto,
+    @UploadedFile() image: Express.Multer.File,
   ): Promise<Course> {
-    return await this.courseService.createCourse(createCourseDto);
-
+      // Check if an image was provided
+      if (!image) {
+        throw new BadRequestException('Image is required');
+      }
+    return await this.courseService.createCourse(createCourseDto,image);
   }
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   // @Get()
