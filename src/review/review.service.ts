@@ -89,9 +89,6 @@ export class ReviewService {
 
 async getReviewsByCourse(courseId: string, paginationDto: PaginationDto) {
   try {
-    // const courseObjectId = new Types.ObjectId(courseId);
-
-    // Check if the course exists
     const course = await this.courseModel.findById(courseId).exec();
     if (!course) {
       throw new NotFoundException(`Course with ID ${courseId} not found`);
@@ -121,6 +118,7 @@ async getReviewsByCourse(courseId: string, paginationDto: PaginationDto) {
       reviews,
       totalPages: Math.ceil(totalReviews / limit),
       currentPage: page,
+      limit, // Include the limit in the response
     };
   } catch (error) {
     // Categorize and handle errors based on their type

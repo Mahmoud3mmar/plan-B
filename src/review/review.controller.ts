@@ -106,6 +106,10 @@ async getRatingPercentages(@Param('courseId') courseId: string) {
         type: 'number',
         description: 'Current page number',
       },
+      limit: {
+        type: 'number',
+        description: 'Number of reviews per page',
+      },
     },
   },
 })
