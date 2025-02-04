@@ -42,11 +42,11 @@ export class SubtrainingService {
       throw new NotFoundException('Summer training not found');
     }
   
-    // Check if the provided instructor ID exists
-    const instructor = await this.InstructorModel.findById(createSubTrainingDto.instructor);
-    if (!instructor) {
-      throw new NotFoundException('Instructor not found');
-    }
+    // // Check if the provided instructor ID exists
+    // const instructor = await this.InstructorModel.findById(createSubTrainingDto.instructor);
+    // if (!instructor) {
+    //   throw new NotFoundException('Instructor not found');
+    // }
   
     // Create the sub-training entity
     const createdSubTraining = new this.subTrainingModel({
@@ -63,11 +63,11 @@ export class SubtrainingService {
       { $push: { subTrainings: savedSubTraining }, $inc: { subTrainingsCount: 1 } }
     );
   
-    // Add to the instructor's sub-trainings array
-    await this.InstructorModel.updateOne(
-      { _id: createSubTrainingDto.instructor },
-      { $push: { subTrainings: savedSubTraining } }
-    );
+    // // Add to the instructor's sub-trainings array
+    // await this.InstructorModel.updateOne(
+    //   { _id: createSubTrainingDto.instructor },
+    //   { $push: { subTrainings: savedSubTraining } }
+    // );
     console.log(savedSubTraining)
     return savedSubTraining;
   }

@@ -9,10 +9,10 @@ export class CreateSubTrainingDto {
   @IsNotEmpty()
   @IsString()
   name: string;
-  @ApiProperty({ description: 'ID of the instructor for the sub-training', type: String })
-  @IsNotEmpty()
-  @Transform(({ value }) => new Types.ObjectId(value))
-  instructor: Types.ObjectId;
+  // @ApiProperty({ description: 'ID of the instructor for the sub-training', type: String })
+  // @IsNotEmpty()
+  // @Transform(({ value }) => new Types.ObjectId(value))
+  // instructor: Types.ObjectId;
 
   @ApiProperty({ description: 'Duration of the sub-training (e.g., 4 weeks, 2 months)' })
   @IsNotEmpty()

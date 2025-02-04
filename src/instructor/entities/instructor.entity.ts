@@ -35,8 +35,8 @@ export class Instructor extends User {
   @Prop({ type: [Types.ObjectId], ref: 'User' ,default:[] })
   students: Types.ObjectId[];
 
-  @Prop({ type: [Types.ObjectId], ref: SubTrainingEntity.name })
-  subTrainings: Types.ObjectId[]; // List of SubTrainingEntities taught by this instructor
+  // @Prop({ type: [Types.ObjectId], ref: SubTrainingEntity.name })
+  // subTrainings: Types.ObjectId[]; // List of SubTrainingEntities taught by this instructor
 }
 
 export const InstructorSchema = SchemaFactory.createForClass(Instructor);

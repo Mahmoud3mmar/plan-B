@@ -31,8 +31,8 @@ export class SubTrainingEntity extends Document {
   @Prop({ required: true })
   name: string; // Name of the sub-training
 
-  @Prop({ type: Types.ObjectId, ref: 'Instructor', required: true })
-  instructor: Types.ObjectId; // Reference to the instructor teaching the sub-training
+  // @Prop({ type: Types.ObjectId, ref: 'Instructor', required: true })
+  // instructor: Types.ObjectId; // Reference to the instructor teaching the sub-training
 
   @Prop({ required: true })
   duration: string; // Duration of the sub-training (e.g., '4 weeks', '2 months')
