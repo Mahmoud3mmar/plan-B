@@ -49,13 +49,9 @@ export class CourseController {
   })
   async createCourse(
     @Body() createCourseDto: CreateCourseDto,
-    @UploadedFile() image: Express.Multer.File,
   ): Promise<Course> {
-      // Check if an image was provided
-      if (!image) {
-        throw new BadRequestException('Image is required');
-      }
-    return await this.courseService.createCourse(createCourseDto,image);
+     
+    return await this.courseService.createCourse(createCourseDto);
   }
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   // @Get()

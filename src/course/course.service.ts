@@ -52,7 +52,6 @@ export class CourseService {
   ) {}
   async createCourse(
     createCourseDto: CreateCourseDto,
-    image: Express.Multer.File,
   ): Promise<Course> {
     try {
       const { categoryId, ...courseData } = createCourseDto;
@@ -75,15 +74,15 @@ export class CourseService {
       // Create the course
       const createdCourse = await this.courseModel.create(newCourseData);
 
-      // Handle image upload if provided
-      if (image) {
-        const uploadResult = await this.CloudinaryService.uploadImage(
-          image,
-          'courseImages',
-        );
-        createdCourse.imageUrl = uploadResult.secure_url; // Save the image URL to the course
-        await createdCourse.save();
-      }
+      // // Handle image upload if provided
+      // if (image) {
+      //   const uploadResult = await this.CloudinaryService.uploadImage(
+      //     image,
+      //     'courseImages',
+      //   );
+      //   createdCourse.imageUrl = uploadResult.secure_url; // Save the image URL to the course
+      //   await createdCourse.save();
+      // }
 
       // Create a new CourseCurriculum entity for the created course
       const courseCurriculum = new this.CourseCurriculumModel({
