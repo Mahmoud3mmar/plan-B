@@ -357,4 +357,18 @@ export class AuthController {
   async refreshToken(@Query('refreshToken') refreshToken: string) {
     return this.authService.refreshToken(refreshToken);
   }
+
+  @Post('resend/otp')
+  @ApiOperation({ summary: 'Resend OTP for email verification' })
+  @ApiQuery({
+    name: 'email',
+    description: 'Email of the user requesting OTP',
+    example: 'john.doe@example.com',
+  })
+  @ApiResponse({ status: 200, description: 'OTP sent successfully.' })
+  @ApiResponse({ status: 400, description: 'Bad Request.' })
+  @ApiResponse({ status: 404, description: 'User not found.' })
+  async resendOtp(@Query('email') email: string) {
+    return this.authService.resendOtp(email);
+  }
 }

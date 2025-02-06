@@ -767,4 +767,33 @@ export class AuthService {
     }
 }
 
+async resendOtp(email: string): Promise<{ message: string }> {
+  // Find the user by email
+  const user = await this.userModel.findOne({ email });
+  if (!user) {
+    throw new NotFoundException('User not found.');
+  }
+  if (user.isVerified) {
+    throw new BadRequestException('Email is already verified.');
+  }
+
+  // Generate a new OTP
+  const otp = crypto.randomInt(100000, 999999).toString();
+
+  // Optionally, if you want to persist the OTP in the DB for later verification,
+  // add fields like otp and otpExpires (not shown here)
+
+  // Generate a new JWT token containing the OTP and email for verification
+  const payload = { email, otp };
+  const otpToken = this.jwtService.sign(payload, {
+    secret: process.env.JWT_VERIFY_SECRET,
+    expiresIn: '10m',
+  });
+
+  // Send the OTP via email
+  await this.sendOtpEmail(email, otp, otpToken);
+
+  return { message: 'OTP sent successfully.' };
+}
+
 }
