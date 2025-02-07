@@ -110,10 +110,12 @@ export class AwsService {
   async generatePresignedUrl(key: string, fileType: string): Promise<string> {
     const command = new PutObjectCommand({
       Bucket: process.env.AWS_S3_BUCKET_NAME,
+
       Key: key,
       ContentType: fileType,
     });
     
+    console.log('Bucket Name:',  process.env.AWS_S3_BUCKET_NAME);
 
     const url = await getSignedUrl(this.s3duplicate, command, { expiresIn: 3600 }); // URL expires in 1 hour
     return url;
