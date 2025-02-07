@@ -118,14 +118,16 @@ export class VedioController {
   }
   @Get('presigned/url')
   async getPresignedUrl(
-    @Query('fileName') fileOriginalName: string,
-    @Query('fileType') fileType: string, // Get fileType from query
+    @Query('fileName') fileName: string,
+    @Query('fileType') fileType: string,
   ) {
-    const { url, fields, fileName } = await this.vedioService.generatePresignedUrl(fileOriginalName, fileType);
-    return { url, fields, fileName }; // Return fileName for reference
+    const url = await this.vedioService.generatePresignedUrl(fileName, fileType);
+    return { url };
   }
+
   @Get(':id')
   async getVideo(@Param('id') id: string): Promise<Video> {
     return this.vedioService.getVideoById(id);
   }
+
 }

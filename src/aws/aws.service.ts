@@ -87,24 +87,35 @@ export class AwsService {
   //   return { url, fields, fileName };
   // }
 
-  async generatePresignedUrl(fileOriginalName: string, fileType: string) {
-    const timestamp = Date.now();
-    // const fileExtension = fileOriginalName.split('.').pop(); // Get file extension
-    const fileName = `courses/${Date.now()}-${fileOriginalName}`;
+  // async generatePresignedUrl(fileOriginalName: string, fileType: string) {
+  //   const timestamp = Date.now();
+  //   // const fileExtension = fileOriginalName.split('.').pop(); // Get file extension
+  //   const fileName = `courses/${Date.now()}-${fileOriginalName}`;
   
-    const { url, fields } = await createPresignedPost(this.s3duplicate, {
+  //   const { url, fields } = await createPresignedPost(this.s3duplicate, {
+  //     Bucket: process.env.AWS_S3_BUCKET_NAME,
+  //     Key: fileName,
+  //     Expires: 60, // URL expires in 60 seconds
+  //     Conditions: [
+  //       ['starts-with', '$Content-Type', fileType], // Ensure correct Content-Type
+  //     ],
+  //     Fields: {
+  //       'Content-Type': fileType, // Set correct Content-Type
+  //     },
+  //   });
+  
+  //   return { url, fields, fileName };
+  // }
+  
+  async generatePresignedUrl(key: string, fileType: string): Promise<string> {
+    const command = new PutObjectCommand({
       Bucket: process.env.AWS_S3_BUCKET_NAME,
-      Key: fileName,
-      Expires: 60, // URL expires in 60 seconds
-      Conditions: [
-        ['starts-with', '$Content-Type', fileType], // Ensure correct Content-Type
-      ],
-      Fields: {
-        'Content-Type': fileType, // Set correct Content-Type
-      },
+      Key: key,
+      ContentType: fileType,
     });
-  
-    return { url, fields, fileName };
+    
+
+    const url = await getSignedUrl(this.s3duplicate, command, { expiresIn: 3600 }); // URL expires in 1 hour
+    return url;
   }
-  
 } 
