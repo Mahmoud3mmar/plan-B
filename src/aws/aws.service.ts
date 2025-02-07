@@ -106,18 +106,29 @@ export class AwsService {
   
   //   return { url, fields, fileName };
   // }
-  
-  async generatePresignedUrl(key: string, fileType: string): Promise<string> {
-    const command = new PutObjectCommand({
-      Bucket: process.env.AWS_S3_BUCKET_NAME,
+  async generatePresignedUrl(
+    key: string,
+    fileType: string,
+  ): Promise<any> {
+    const bucketName = process.env.AWS_S3_BUCKET_NAME;
+    if (!bucketName) {
+      throw new Error('AWS_S3_BUCKET_NAME is not defined in the environment variables.');
+    }
 
+    console.log('Bucket Name:', bucketName);
+
+    const { url, fields } = await createPresignedPost(this.s3duplicate, {
+      Bucket: bucketName,
       Key: key,
-      ContentType: fileType,
+      Expires: 3600, // URL expires in 1 hour
+      Conditions: [
+        ['starts-with', '$Content-Type', fileType], // Ensure correct Content-Type
+      ],
+      Fields: {
+        'Content-Type': fileType, // Set correct Content-Type
+      },
     });
-    
-    console.log('Bucket Name:',  process.env.AWS_S3_BUCKET_NAME);
 
-    const url = await getSignedUrl(this.s3duplicate, command, { expiresIn: 3600 }); // URL expires in 1 hour
-    return url;
+    return { url, fields , fileName:key }; // Return the correct structure
   }
 } 

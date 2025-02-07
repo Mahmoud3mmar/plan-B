@@ -121,8 +121,8 @@ export class VedioController {
     @Query('fileName') fileName: string,
     @Query('fileType') fileType: string,
   ) {
-    const url = await this.vedioService.generatePresignedUrl(fileName, fileType);
-    return { url };
+    return await this.vedioService.generatePresignedUrl(fileName, fileType);
+  
   }
 
   @Get(':id')
