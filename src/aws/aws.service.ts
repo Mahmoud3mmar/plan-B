@@ -106,6 +106,7 @@ export class AwsService {
   
   //   return { url, fields, fileName };
   // }
+  
   async generatePresignedUrl(
     key: string,
     fileType: string,
@@ -114,10 +115,10 @@ export class AwsService {
     if (!bucketName) {
       throw new Error('AWS_S3_BUCKET_NAME is not defined in the environment variables.');
     }
-
-    console.log('Bucket Name:', bucketName);
-    const fileName = `courses/${key}`;
-
+  
+    const folderName = 'courses'; // Folder name for the files
+    const fileName = `${folderName}/${key}`; // Full path including the folder
+  
     const { url, fields } = await createPresignedPost(this.s3duplicate, {
       Bucket: bucketName,
       Key: fileName,
@@ -129,7 +130,11 @@ export class AwsService {
         'Content-Type': fileType, // Set correct Content-Type
       },
     });
-
-    return { url, fields , fileName:key }; // Return the correct structure
+  
+    // Modify the URL to include the folder in the base URL
+    const baseUrl = `${url}${folderName}/`;
+  
+    return { url: baseUrl, fields, fileName: key }; // Return the updated structure
   }
+  
 } 
