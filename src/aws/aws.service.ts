@@ -118,7 +118,7 @@ export class AwsService {
   
     const folderName = 'courses'; // Folder name for the files
     const fileName = `${folderName}/${key}`; // Full path including the folder
-  
+   
     const { url, fields } = await createPresignedPost(this.s3duplicate, {
       Bucket: bucketName,
       Key: fileName,
