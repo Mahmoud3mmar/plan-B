@@ -116,10 +116,11 @@ export class AwsService {
     }
 
     console.log('Bucket Name:', bucketName);
+    const fileName = `courses/${key}`;
 
     const { url, fields } = await createPresignedPost(this.s3duplicate, {
       Bucket: bucketName,
-      Key: key,
+      Key: fileName,
       Expires: 3600, // URL expires in 1 hour
       Conditions: [
         ['starts-with', '$Content-Type', fileType], // Ensure correct Content-Type

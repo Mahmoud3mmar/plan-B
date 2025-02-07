@@ -19,6 +19,7 @@ import { CurriculumBlock } from '../curriculum-block/entities/curriculum.block.e
 import { AwsService } from '../aws/aws.service';
 import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
+import { SaveVedioDto } from './dto/save.vedio.dto';
 
 @Injectable()
 export class VedioService {
@@ -383,6 +384,76 @@ async createVideowithoutCourseId(
   }
 }
 
+
+
+async SaveVedioWithCurriculumBlockId(
+  SaveVedioDto: SaveVedioDto,
+  curriculumBlockId: string,
+): Promise<Video> {
+  try {
+    // Step 1: Find curriculum block and get courseId
+    const curriculumBlock = await this.curriculumBlockModel
+      .findById(curriculumBlockId)
+      .populate({
+        path: 'courseCurriculum',
+        select: 'courseId',
+      })
+      .exec();
+    if (!curriculumBlock) {
+      throw new NotFoundException(`Curriculum Block with ID ${curriculumBlockId} not found`);
+    }
+
+    const courseId = curriculumBlock.courseCurriculum.courseId;
+    
+    // // Step 2: Upload video to AWS S3
+    // const uploadResult = await this.awsService.uploadVideo(file, 'courses');
+    // if (!uploadResult || !uploadResult.fileUrl) {
+    //   throw new InternalServerErrorException('Video upload failed');
+    // }
+    // console.log(uploadResult);
+
+    // Step 3: Create and save video record
+    const createdVideo = new this.videoModel({
+      ...SaveVedioDto,
+      course: courseId,
+      videoUrl: SaveVedioDto.videoUrl,
+      // fileId: uploadResult.key, // Use S3 key as fileId
+    });
+   
+    const savedVideo = await createdVideo.save();
+    
+    // Step 4: Update course with new video
+    await this.courseModel.findByIdAndUpdate(
+      courseId,
+      { $push: { videos: savedVideo._id } },
+      { new: true, useFindAndModify: false },
+    );
+
+    // Step 5: Calculate durations
+    const videoDurationInMinutes = this.convertDurationToMinutes(savedVideo.duration);
+    const currentDurationInMinutes = this.convertDurationToMinutes(curriculumBlock.totalDuration || '00:00');
+    const updatedTotalDurationInMinutes = currentDurationInMinutes + videoDurationInMinutes;
+
+    // Step 6: Update curriculum block
+    const updatedBlock = await this.curriculumBlockModel.findByIdAndUpdate(
+      curriculumBlockId,
+      {
+        $push: { videos: savedVideo._id },
+        totalDuration: this.convertMinutesToDuration(updatedTotalDurationInMinutes),
+      },
+      { new: true, useFindAndModify: false },
+    );
+
+    if (!updatedBlock) {
+      throw new NotFoundException(`Curriculum Block with ID ${curriculumBlockId} not found`);
+    }
+
+    return savedVideo;
+  } catch (error) {
+    console.error('Error creating video:', error.message || error);
+    throw new InternalServerErrorException('Failed to create video');
+  }
+}
 // Helper Functions
 private convertDurationToMinutes(duration: string): number {
   if (!duration) {

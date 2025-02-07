@@ -1,11 +1,12 @@
 import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, UseInterceptors, UploadedFile, Query, BadRequestException, InternalServerErrorException, HttpStatus } from '@nestjs/common';
 import { VedioService } from './vedio.service';
-import { ApiOperation, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { ApiBody, ApiOperation, ApiParam, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { Video } from './entities/vedio.entity';
 import { CreateVideoDto } from './dto/create.vedio.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { GetVideosDto } from './dto/get.vedio.dto';
 import { MulterOptions } from '@nestjs/platform-express/multer/interfaces/multer-options.interface';
+import { SaveVedioDto } from './dto/save.vedio.dto';
 
 const multerOptions: MulterOptions = {
   limits: {
@@ -49,21 +50,55 @@ export class VedioController {
   //     file,
   //   );
   // }
-  @Post('upload/:curriculumBlockId')
-  @UseInterceptors(FileInterceptor('vedio'))
+  // @Post('upload/:curriculumBlockId')
+  // @UseInterceptors(FileInterceptor('vedio'))
+  // async uploadVideo(
+  //   @Param('curriculumBlockId') curriculumBlockId: string,
+  //   @Body() createVideoDto: CreateVideoDto,
+  //   @UploadedFile() file: Express.Multer.File,
+  // ): Promise<Video> {
+    
+  //     return await this.vedioService.createVideowithoutCourseId(
+  //       createVideoDto,
+  //       curriculumBlockId,
+  //       file,
+  //     );
+    
+    
+  // }
+
+
+  @Post('save/:curriculumBlockId')
+  @ApiOperation({ summary: 'Upload video and save it under a curriculum block.' })
+  @ApiParam({
+    name: 'curriculumBlockId',
+    description: 'ID of the curriculum block to which the video will be linked.',
+    type: String,
+  })
+  @ApiBody({
+    description: 'Payload for uploading a video',
+    type: SaveVedioDto,
+    examples: {
+      regular: {
+        summary: 'A sample payload',
+        value: {
+          title: 'Introduction to Medical Imaging',
+          description: 'A comprehensive overview of medical imaging techniques.',
+          duration: '05:00',
+          videoUrl: 'https://planpcloud.s3.eu-north-1.amazonaws.com/Screen-Recording%20(1).mp4'
+        }
+      }
+    }
+  })
+  @ApiResponse({ status: 201, description: 'Video created successfully', type: Video })
   async uploadVideo(
     @Param('curriculumBlockId') curriculumBlockId: string,
-    @Body() createVideoDto: CreateVideoDto,
-    @UploadedFile() file: Express.Multer.File,
+    @Body() SaveVedioDto: SaveVedioDto,
   ): Promise<Video> {
-    
-      return await this.vedioService.createVideowithoutCourseId(
-        createVideoDto,
-        curriculumBlockId,
-        file,
-      );
-    
-    
+    return await this.vedioService.SaveVedioWithCurriculumBlockId(
+      SaveVedioDto,
+      curriculumBlockId,
+    );
   }
   @Get('sorted')
   @ApiQuery({ name: 'courseId', type: String, required: true, example: '66e1a62c3eae57948828541f' })

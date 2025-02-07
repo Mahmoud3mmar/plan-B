@@ -16,8 +16,8 @@ export class Video extends Document {
   @Prop({ required: true })
   videoUrl: string; // URL of the video hosted on a cloud service
 
-  @Prop({ required: true })
-  fileId: string; // Backblaze file ID
+  // @Prop({ required: true })
+  // fileId: string; // Backblaze file ID
 
   @Prop()
   signedUrl: string; // Temporary signed URL for accessing the video
