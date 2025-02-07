@@ -116,9 +116,14 @@ export class VedioController {
     await this.vedioService.deleteVideo(videoId, courseId);
 
   }
-
-
-
+  @Get('presigned/url')
+  async getPresignedUrl(
+    @Query('fileName') fileOriginalName: string,
+    @Query('fileType') fileType: string, // Get fileType from query
+  ) {
+    const { url, fields, fileName } = await this.vedioService.generatePresignedUrl(fileOriginalName, fileType);
+    return { url, fields, fileName }; // Return fileName for reference
+  }
   @Get(':id')
   async getVideo(@Param('id') id: string): Promise<Video> {
     return this.vedioService.getVideoById(id);

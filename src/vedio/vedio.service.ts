@@ -17,6 +17,8 @@ import { CloudinaryService } from '../cloudinary/cloudinary.service';
 import { Course } from '../course/entities/course.entity';
 import { CurriculumBlock } from '../curriculum-block/entities/curriculum.block.entity';
 import { AwsService } from '../aws/aws.service';
+import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
+import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 
 @Injectable()
 export class VedioService {
@@ -526,5 +528,9 @@ private convertMinutesToDuration(minutes: number): string {
     }
     return video;
   }
+  async generatePresignedUrl(fileOriginalName: string, fileType: string) {
+    return this.awsService.generatePresignedUrl(fileOriginalName, fileType);
+  }
+  
 
 }
