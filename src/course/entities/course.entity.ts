@@ -69,6 +69,21 @@ export class Course extends Document {
 
   @Prop({ type: [Types.ObjectId], ref: 'Student', default: [] }) // Array of user IDs who purchased the course
   enrolledStudents: Types.ObjectId[];
+
+  @Prop({ type: [{
+    studentId: { type: Types.ObjectId, ref: 'Student', required: true },
+    quizId: { type: Types.ObjectId, ref: 'Quiz', required: true },
+    score: { type: Number, required: true },
+    passed: { type: Boolean, required: true },
+    completedAt: { type: Date, required: true }
+  }], default: [] })
+  quizResults: {
+    studentId: Types.ObjectId;
+    quizId: Types.ObjectId;
+    score: number;
+    passed: boolean;
+    completedAt: Date;
+  }[];
 }
 
 export const CourseSchema = SchemaFactory.createForClass(Course);

@@ -2,6 +2,7 @@ import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, Schema as MongooseSchema } from 'mongoose';
 import { Video } from '../../vedio/entities/vedio.entity';
 import { CourseCurriculum } from '../../course-curriculm/entities/course-curriculm.entity';
+import { Quiz } from '../../quiz/entities/quiz.entity';
 
 @Schema({ timestamps: true })
 export class CurriculumBlock extends Document {
@@ -20,6 +21,11 @@ export class CurriculumBlock extends Document {
     @Prop({ type: Boolean, default: false })
     isPreview: boolean; // Flag to indicate if this block is available for free preview
 
+    @Prop({ type: [{ type: MongooseSchema.Types.ObjectId, ref: 'Quiz' }], default: [] })
+    quizzes: Quiz[]; // Array of quizzes in this block
+
+    @Prop({ required: true, default: 0 })
+    numberOfQuizzes: number; // Number of quizzes in the block
 
    @Prop({ type: MongooseSchema.Types.ObjectId, ref: 'CourseCurriculum', required: true })
   courseCurriculum: CourseCurriculum; // Reference to the course curriculum this block belongs to

@@ -24,6 +24,7 @@ import { AwsModule } from './aws/aws.module';
 import { ContactUsModule } from './contact-us/contact-us.module';
 import { FawryModule } from './fawry/fawry.module';
 import { NationalityI18nModule } from './nationality-i18n/nationality-i18n.module';
+import { QuizModule } from './quiz/quiz.module';
 
 @Module({
   imports: [AuthModule, UserModule, CourseModule, FaqsModule, InstructorModule, ReviewModule, SummertrainingModule,VedioModule,
@@ -43,7 +44,8 @@ import { NationalityI18nModule } from './nationality-i18n/nationality-i18n.modul
   AwsModule,
   ContactUsModule,
   FawryModule,
-  NationalityI18nModule,  
+  NationalityI18nModule,
+  QuizModule,  
 
 ],
   controllers: [AppController], 
