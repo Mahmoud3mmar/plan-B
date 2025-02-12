@@ -46,21 +46,21 @@ export class UpdateCourseDto {
   @IsEnum(Level)
   level?: Level;
 
-  @ApiPropertyOptional({
-    description: 'The number of lessons in the course',
-    example: 15,
-  })
-  @IsOptional()
-  @IsNumber()
-  numberOfLessons?: number;
+  // @ApiPropertyOptional({
+  //   description: 'The number of lessons in the course',
+  //   example: 15,
+  // })
+  // @IsOptional()
+  // @IsNumber()
+  // numberOfLessons?: number;
 
-  @ApiPropertyOptional({
-    description: 'The number of quizzes in the course',
-    example: 7,
-  })
-  @IsOptional()
-  @IsNumber()
-  numberOfQuizzes?: number;
+  // @ApiPropertyOptional({
+  //   description: 'The number of quizzes in the course',
+  //   example: 7,
+  // })
+  // @IsOptional()
+  // @IsNumber()
+  // numberOfQuizzes?: number;
 
   @ApiPropertyOptional({
     description: 'The course curriculum',

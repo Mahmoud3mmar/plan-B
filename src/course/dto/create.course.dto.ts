@@ -31,23 +31,23 @@ export class CreateCourseDto {
   @IsEnum(Level)
   level: Level; // Updated to reflect enum usage
 
-  @ApiProperty({
-    description: 'The number of lessons in the course',
-    example: 10,
-  })
-  @IsNotEmpty()
-  @IsNumber()
-  @Transform(({ value }) => Number(value))
-  numberOfLessons: number;
+  // @ApiProperty({
+  //   description: 'The number of lessons in the course',
+  //   example: 10,
+  // })
+  // @IsNotEmpty()
+  // @IsNumber()
+  // @Transform(({ value }) => Number(value))
+  // numberOfLessons: number;
 
-  @ApiProperty({
-    description: 'The number of quizzes in the course',
-    example: 5,
-  })
-  @IsNotEmpty()
-  @IsNumber()
-  @Transform(({ value }) => Number(value))
-  numberOfQuizzes: number;
+  // @ApiProperty({
+  //   description: 'The number of quizzes in the course',
+  //   example: 5,
+  // })
+  // @IsNotEmpty()
+  // @IsNumber()
+  // @Transform(({ value }) => Number(value))
+  // numberOfQuizzes: number;
 
   @ApiProperty({
     description: 'The price of the course',

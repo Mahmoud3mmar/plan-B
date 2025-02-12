@@ -1,4 +1,4 @@
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { IsNotEmpty, IsString, IsNumber, IsBoolean, IsEnum, IsOptional, IsArray } from 'class-validator';
 import { Type, Transform } from 'class-transformer';
 import { Types } from 'mongoose';
@@ -19,18 +19,36 @@ export class CreateSubTrainingDto {
   @IsString()
   duration: string;
 
-  @ApiProperty({ description: 'Number of lessons in the sub-training', example: 10 })
-  @IsNotEmpty()
+  @ApiProperty({ 
+    description: 'Number of lessons in the sub-training', 
+    example: 10, 
+    required: false // Mark as optional
+  })
+  
+  @IsOptional() // Make this field optional
   @Transform(({ value }) => Number(value))
   @IsNumber()
-  numberOfLessons: number;
+  numberOfLessons?: number; // Use optional chaining
   
-  @ApiProperty({ description: 'Level of the sub-training', enum: trainingLevel })
-  @IsNotEmpty()
-  @IsEnum(trainingLevel)
-  level: trainingLevel;
+  @ApiProperty({ 
+    description: 'Level of the sub-training', 
+    enum: trainingLevel, 
+    isArray: true // Indicate that this is an array
+  })
+  @IsOptional() // Make this field optional
+  @IsArray() // Validate that this is an array
+  @IsEnum(trainingLevel, { each: true }) // Validate each item in the array
+  @Transform(({ value }) => {
+    if (typeof value === 'string') {
+      return value.split(',').map(level => level.trim() as trainingLevel); // Convert comma-separated string to array
+    }
+    if (Array.isArray(value)) {
+      return value; // Return as-is if already an array
+    }
+    return []; // Default to empty array for invalid inputs
+  })
+  level?: trainingLevel[]; // Change to an optional array of trainingLevel enums
   
-
   @ApiProperty({ description: 'Is the sub-training paid or not?' })
   @IsNotEmpty()
   @Transform(({ value }) => value === 'true' || value === true)

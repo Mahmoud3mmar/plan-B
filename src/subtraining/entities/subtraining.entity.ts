@@ -5,8 +5,9 @@ import { Document, Types } from 'mongoose';
 import { Instructor } from '../../instructor/entities/instructor.entity';
 import { Level } from '../../course/utils/levels.enum';
 import { SummerTraining } from '../../summertraining/entities/summertraining.entity';
-import { IsNotEmpty } from 'class-validator';
-export enum trainingLevel{
+import { IsNotEmpty, IsArray, ArrayNotEmpty, IsOptional } from 'class-validator';
+
+export enum trainingLevel {
   One = 'One',
   Two = 'Two',
   Three = 'Three',
@@ -23,8 +24,7 @@ export class Topics {
 
   @Prop({ required: true })
   title: string;
-
-} 
+}
 
 @Schema()
 export class SubTrainingEntity extends Document {
@@ -37,8 +37,8 @@ export class SubTrainingEntity extends Document {
   @Prop({ required: true })
   duration: string; // Duration of the sub-training (e.g., '4 weeks', '2 months')
 
-  @Prop({ required: true, default: 0 })
-  numberOfLessons: number; // Number of lessons in the sub-training
+  @Prop({ required: false, default: 0 })
+  numberOfLessons?: number; // Number of lessons in the sub-training
 
   @Prop({ required: true, default: 0 })
   numberOfStudentsEnrolled: number; // Number of students enrolled in the sub-training
@@ -92,9 +92,11 @@ export class SubTrainingEntity extends Document {
   topic: Topics[]
 
 
-  @IsNotEmpty()
-  @Prop({ type: String, enum: trainingLevel, trainingLevel: Level.AllLevels })
-  level: trainingLevel; 
+  @IsOptional()
+  @IsArray()
+  @ArrayNotEmpty()
+  @Prop({ type: [String], enum: trainingLevel, default: [trainingLevel.AllLevels] })
+  level?: trainingLevel[];
 
   @Prop({ required: false })
   hasOffer: boolean;

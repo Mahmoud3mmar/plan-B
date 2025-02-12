@@ -32,10 +32,10 @@ export class Course extends Document {
   })
   level: Level
 
-  @Prop({ required: true })
+  @Prop({ required: false, default: 0 })
   numberOfLessons: number;
 
-  @Prop({ required: true })
+  @Prop({ required: false, default: 0 })
   numberOfQuizzes: number;
 
   @Prop({ type: [{ type: MongooseSchema.Types.ObjectId, ref: 'CourseCurriculum' }], required: true, default: [] })

@@ -7,17 +7,35 @@ import { UpdateQuizDto } from './dto/update-quiz.dto';
 import { SubmitQuizDto } from './dto/submit-quiz.dto';
 import { QuizResult } from './entities/quiz-result.entity';
 import { Student } from '../student/entities/student.entity';
+import { Course } from '../course/entities/course.entity';
+import { CurriculumBlock } from '../curriculum-block/entities/curriculum.block.entity';
 
 @Injectable()
 export class QuizService {
   constructor(
     @InjectModel(Quiz.name) private quizModel: Model<Quiz>,
     @InjectModel(QuizResult.name) private quizResultModel: Model<QuizResult>,
+    @InjectModel(Course.name) private courseModel: Model<Course>,
+    @InjectModel(CurriculumBlock.name) private curriculumBlockModel: Model<CurriculumBlock>
   ) {}
 
   async create(createQuizDto: CreateQuizDto): Promise<Quiz> {
     const createdQuiz = new this.quizModel(createQuizDto);
-    return createdQuiz.save();
+    await createdQuiz.save();
+
+    await this.courseModel.findByIdAndUpdate(
+      createQuizDto.curriculumBlock,
+      { $inc: { numberOfQuizzes: 1 } },
+      { new: true }
+    );
+
+    await this.curriculumBlockModel.findByIdAndUpdate(
+      createQuizDto.curriculumBlock,
+      { $inc: { numberOfQuizzes: 1 } },
+      { new: true }
+    );
+
+    return createdQuiz;
   }
 
   async findAll(): Promise<Quiz[]> {

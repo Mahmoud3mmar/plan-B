@@ -425,9 +425,14 @@ async SaveVedioWithCurriculumBlockId(
     // Step 4: Update course with new video
     await this.courseModel.findByIdAndUpdate(
       courseId,
-      { $push: { videos: savedVideo._id } },
+      { 
+        $push: { videos: savedVideo._id }, // Add the new video ID to the course's videos array
+        $inc: { numberOfLessons: 1 } // Increment the number of lessons in the course
+      },
       { new: true, useFindAndModify: false },
     );
+
+   
 
     // Step 5: Calculate durations
     const videoDurationInMinutes = this.convertDurationToMinutes(savedVideo.duration);
@@ -439,6 +444,7 @@ async SaveVedioWithCurriculumBlockId(
       curriculumBlockId,
       {
         $push: { videos: savedVideo._id },
+        $inc: { numberOfLessons: 1 }, // Increment the number of lessons in the curriculum block
         totalDuration: this.convertMinutesToDuration(updatedTotalDurationInMinutes),
       },
       { new: true, useFindAndModify: false },
