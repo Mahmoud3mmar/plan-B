@@ -99,7 +99,7 @@ export class SubTrainingEntity extends Document {
   level?: trainingLevel[];
 
   @Prop({ required: false })
-  hasOffer: boolean;
+  hasOffer?: boolean;
 
   @Prop({ required: false })
   offerPrice?: number;

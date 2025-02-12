@@ -57,11 +57,11 @@ export class CreateSubTrainingDto {
 
 
   
-  @ApiProperty({ description: 'Is the sub-training has offer or not?' })
-  @IsNotEmpty()
+  @ApiProperty({ description: 'Does the sub-training have an offer?' }) // Mark as optional
+  @IsOptional() // Make this field optional
   @Transform(({ value }) => value === 'true' || value === true)
   @IsBoolean()
-  hasOffer: boolean;
+  hasOffer?: boolean; // Use optional chaining
 
   @ApiProperty({ description: 'Price of the sub-training', required: false })
   @IsOptional()
