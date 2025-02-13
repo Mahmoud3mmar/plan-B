@@ -7,8 +7,8 @@ export class CreateCurriculumBlockDto {
   title: string;
 
 
-  @IsNotEmpty()
-  numberOfLessons: number;
+  // @IsNotEmpty()
+  // numberOfLessons: number;
 
   @IsBoolean()
   isPreview: boolean;

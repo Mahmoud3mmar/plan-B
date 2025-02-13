@@ -461,13 +461,13 @@ export class SubtrainingService {
         this.subTrainingPurchaseModel.countDocuments().exec(),
       ]);
   
-      if (!purchases || purchases.length === 0) {
-        throw new NotFoundException('No purchase records found');
-      }
+      // if (!purchases || purchases.length === 0) {
+      //   throw new NotFoundException('No purchase records found');
+      // }
   
       // Return a structured response
       return {
-        data: purchases,
+        data: purchases || [], // Return an empty array if purchases is null or undefined
         total,
         page,
         limit,
