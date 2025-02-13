@@ -5,6 +5,7 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { CurriculumBlock, CurriculumBlockSchema } from './entities/curriculum.block.entity';
 import { Course, CourseSchema } from '../course/entities/course.entity';
 import { CourseCurriculum, CourseCurriculumSchema } from '../course-curriculm/entities/course-curriculm.entity';
+import { CloudinaryModule } from '../cloudinary/cloudinary.module';
 
 @Module({
   imports: [
@@ -15,6 +16,7 @@ import { CourseCurriculum, CourseCurriculumSchema } from '../course-curriculm/en
       { name: CourseCurriculum.name, schema: CourseCurriculumSchema },
 
     ]),
+    CloudinaryModule,
   ],
   controllers: [CurriculumBlockController],
   providers: [CurriculumBlockService],

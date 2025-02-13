@@ -116,4 +116,52 @@ async deleteVideo(publicId: string, retries = 3): Promise<void> {
     }
   }
 }
+
+// async uploadPdf(pdf: Express.Multer.File): Promise<string> {
+//   return new Promise((resolve, reject) => {
+//     const uploadStream = v2.uploader.upload_stream(
+//       {
+//         folder: 'curriculumPdfs',
+//         resource_type: 'raw', // Specifies that the resource type is raw for non-image/video files
+//       },
+//       (error, result) => {
+//         if (error) return reject(error);
+//         if (!result) return reject(new Error('Unknown error during upload'));
+//         const inlineUrl = this.generateInlinePdfUrl(result.public_id);
+//         resolve(inlineUrl); // Return the inline URL of the uploaded PDF
+//       },
+//     );
+
+//     const passThrough = new PassThrough();
+//     passThrough.end(pdf.buffer);
+//     passThrough.pipe(uploadStream);
+//   });
+// }
+
+// generateInlinePdfUrl(publicId: string): string {
+//   // Generate the URL with fl_attachment parameter set to false
+//   return v2.url(publicId, {
+//     resource_type: 'raw',
+//     flags: 'attachment:false',
+//     format: 'pdf', // Ensure the format is set to pdf
+//   });
+// }
+
+async uploadPdf(pdf: Express.Multer.File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const upload = v2.uploader.upload_stream(
+      {
+        resource_type: 'auto', // Cloudinary will automatically detect the file type
+        folder: 'pdfs', // Optional: You can specify a folder for PDFs
+      },
+      (error, result) => {
+        if (error) return reject(error);
+        if (!result) return reject(new Error('Unknown error during upload'));
+        resolve(result.secure_url); // Return the secure URL of the uploaded PDF
+      },
+    );
+
+    toStream(pdf.buffer).pipe(upload);
+  });
+}
 }

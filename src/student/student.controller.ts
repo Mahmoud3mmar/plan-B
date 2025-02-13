@@ -10,6 +10,7 @@ import { RolesGuard } from '../auth/guards/role.guards';
 import { Roles } from '../auth/Roles.decorator';
 import { Role } from '../user/common utils/Role.enum';
 import { Events } from '../events/entities/event.entity';
+import { Course } from '../course/entities/course.entity';
 
 
 @ApiTags('student')
@@ -141,6 +142,26 @@ export class StudentController {
     return this.studentService.uploadProfileImage(userId, image);
   }
 
+  @Get('learning')
+  @UseGuards(AccessTokenGuard)
+  @ApiOperation({ summary: 'Get enrolled courses for the student' })
+  @ApiResponse({
+    status: 200,
+    description: 'Successfully retrieved enrolled courses.',
+    type: [Course], // Assuming you have a Course DTO
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'Student not found.',
+  })
+  async getEnrolledCourses(@Request() req: any): Promise<Course[]> {
+    const studentId = req.user.sub; // Extract user ID from the JWT token
+    // Check if the user exists
+    if (!studentId) {
+      throw new NotFoundException(`User with ID ${studentId} not found`);
+    }
+    return this.studentService.getEnrolledCourses(studentId);
+  }
 
 }
 

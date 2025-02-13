@@ -27,7 +27,8 @@ export class CurriculumBlock extends Document {
     @Prop({ type: [{ type: MongooseSchema.Types.ObjectId, ref: 'Quiz' }], default: [] })
     quizzes: Quiz[]; // Array of quizzes in this block
 
-   
+    @Prop({ required: false })
+    pdfUrl?: string; // Field to store the PDF URL
 
    @Prop({ type: MongooseSchema.Types.ObjectId, ref: 'CourseCurriculum', required: true })
   courseCurriculum: CourseCurriculum; // Reference to the course curriculum this block belongs to

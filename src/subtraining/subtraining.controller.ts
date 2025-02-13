@@ -72,6 +72,7 @@ export class SubtrainingController {
   ): Promise<{ data: SubTrainingEntity[], total: number }> {
     return this.subtrainingService.getAllSubTrainingsForSummerTraining(summerTrainingId, page, limit);
   }
+  
   @Get(':id')
   @ApiResponse({
     status: 200,

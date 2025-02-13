@@ -225,4 +225,21 @@ export class StudentService {
       throw new InternalServerErrorException('Failed to enroll in sub-training: ' + error.message);
     }
   }
+
+  async getEnrolledCourses(studentId: string): Promise<any> {
+    const student = await this.studentModel
+        .findById(studentId)
+        .populate({
+            path: 'coursesEnrolled',
+            model: Course.name,
+        })
+        .exec();
+
+    if (!student) {
+        throw new NotFoundException(`Student with ID ${studentId} not found`);
+    }
+
+    return student.coursesEnrolled;
+  }
+  
 }

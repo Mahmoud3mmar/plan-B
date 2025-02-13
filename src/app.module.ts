@@ -45,7 +45,7 @@ import { QuizModule } from './quiz/quiz.module';
   ContactUsModule,
   FawryModule,
   NationalityI18nModule,
-  QuizModule,  
+  QuizModule,
 
 ],
   controllers: [AppController], 
