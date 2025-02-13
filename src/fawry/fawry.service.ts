@@ -73,8 +73,9 @@ async createChargeRequest(createChargeRequestDto: CreateChargeRequestDto): Promi
 
   createChargeRequestDto.signature = this.generateSignature(createChargeRequestDto);
   
+  const fawryPaymentUrl = process.env.FAWRY_PAYMENT_URL; // Get the payment URL from environment variables
   try {
-    const response = await axios.post('https://atfawry.fawrystaging.com/fawrypay-api/api/payments/init', createChargeRequestDto);
+    const response = await axios.post(fawryPaymentUrl, createChargeRequestDto);
     // console.log('Fawry API Response:', response.data); // Log the response
     // console.log('Full Response:', response); // Log the full response object
     return response.data; // Ensure this is the correct property
