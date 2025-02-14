@@ -193,33 +193,69 @@ export class SubtrainingController {
   // }
 
   @Post(':id/purchase')
-@UseGuards(AccessTokenGuard, RolesGuard)
-async purchaseSubTraining(
-  @Param('id') id: string,
-  @Body() purchaseDto: PurchaseSubTrainingDto,
-  @Request() req: any,
-  @Res() res: Response,
-): Promise<any> {
-  const user = req.user;
-  const userId = req.user.sub; // Extract user ID from the JWT token
+  @UseGuards(AccessTokenGuard, RolesGuard)
+  @ApiOperation({ summary: 'Purchase a sub-training' })
+  @ApiResponse({
+    status: 200,
+    description: 'Successfully processed the purchase.',
+    schema: {
+      type: 'object',
+      properties: {
+        redirectUrl: { type: 'string', example: 'https://example.com/redirect' },
+      },
+    },
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'Bad Request - Invalid input data.',
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'Sub-training not found.',
+  })
+  @ApiBody({
+    type: PurchaseSubTrainingDto,
+    examples: {
+      example1: {
+        summary: 'Example Purchase Sub-Training',
+        value: {
+          summerTrainingId: '12345',
+          subTrainingId: '67890',
+          university: 'Harvard University',
+          level: 'One',
+          email: 'customer@example.com',
+          customerFirstName: 'John',
+          customerLastName: 'Doe',
+          nationality: 'American',
+          customerMobile: '+1234567890',
+          faculty: 'Engineering',
+        },
+      },
+    },
+  })
+  async purchaseSubTraining(
+    @Param('id') id: string,
+    @Body() purchaseDto: PurchaseSubTrainingDto,
+    @Request() req: any,
+    @Res() res: Response,
+  ): Promise<any> {
+    const userId = req.user.sub; // Extract user ID from the JWT token
 
-  // Pass the purchase data and user ID to the service
-  const redirectUrl = await this.subtrainingService.purchaseSubTraining(id, purchaseDto, userId);
+    // Pass the purchase data and user ID to the service
+    const redirectUrl = await this.subtrainingService.purchaseSubTraining(id, purchaseDto, userId);
 
-  // Return the redirect URL to the client
-  return res.json({ redirectUrl });
-}
+    // Return the redirect URL to the client
+    return res.json({ redirectUrl });
+  }
 
-@Get('purchase/data')
-@ApiOperation({ summary: 'Get all purchase records with pagination' })
-@ApiQuery({ name: 'page', required: false, type: Number, description: 'Page number (default: 1)' })
-@ApiQuery({ name: 'limit', required: false, type: Number, description: 'Records per page (default: 10)' })
-async getAllPurchases(
-  @Query('page') page: number = 1,
-  @Query('limit') limit: number = 10,
-) {
-  return  await this.subtrainingService.getAllPurchases(page, limit);
-
- 
-}
+  @Get('purchase/data')
+  @ApiOperation({ summary: 'Get all purchase records with pagination' })
+  @ApiQuery({ name: 'page', required: false, type: Number, description: 'Page number (default: 1)' })
+  @ApiQuery({ name: 'limit', required: false, type: Number, description: 'Records per page (default: 10)' })
+  async getAllPurchases(
+    @Query('page') page: number = 1,
+    @Query('limit') limit: number = 10,
+  ) {
+    return  await this.subtrainingService.getAllPurchases(page, limit);
+  }
 }

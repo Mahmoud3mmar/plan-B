@@ -70,7 +70,7 @@ export class SubTrainingEntity extends Document {
   isPaid: boolean; // Whether the sub-training is paid or not
 
   
-  @Prop()
+  @Prop({ default: 0 })
   price?: number; 
 
   

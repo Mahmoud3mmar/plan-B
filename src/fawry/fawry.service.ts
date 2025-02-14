@@ -348,4 +348,3 @@ async handleEventPurchase(eventId: string, studentId: string): Promise<void> {
 }
 
 }
-
