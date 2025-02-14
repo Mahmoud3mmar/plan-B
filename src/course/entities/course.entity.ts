@@ -52,8 +52,9 @@ export class Course extends Document {
 
   @Prop()
   videos: [{ type: MongooseSchema.Types.ObjectId, ref: 'Video' },{ default: [] }];
-  @Prop({type: Number, required: true })
-  price: number; // Decimal value, represented as a number
+    
+  @Prop({ default: 0 })
+  price?: number;  // Decimal value, represented as a number, defaults to 0 if not passed
 
   @Prop({ type: Boolean, default: false })
   isPaid: boolean; // Indicates if the course is paid or free

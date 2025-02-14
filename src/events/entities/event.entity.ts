@@ -72,7 +72,8 @@ export class Events extends Document {
   @Prop({ required: true, default: false }) // Indicates if the event is paid
   isPaid: boolean;
 
-  @Prop() // Price is required if isPaid is true
-  price: number; // Price of the event
+    
+  @Prop({ default: 0 })
+  price?: number; ; // Price of the event, optional and defaults to 0 if not passed
 }
 export const EventSchema = SchemaFactory.createForClass(Events);
